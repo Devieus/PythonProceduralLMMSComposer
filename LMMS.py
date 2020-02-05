@@ -70,7 +70,7 @@ bpm=r.randint(songbars*2,songbars*4)
 numerator=4
 #-------------------------Beginnings----------------------------
 # Start with a single element.
-lmms_project=ET.Element("lmms-project", {"version": "1.0", "creator": "LMMS", "creatorversion": "1.2.1", "type": "song"})
+lmms_project=ET.Element("lmms-project", {"version": "1.0", "creator": "Devieus", "creatorversion": "1.2.1", "type": "song"})
 # Make the tree out of that element.
 tree=ET.ElementTree(lmms_project)
 # Add things to the tree, starting with the header that contains the tempo, time signature, etc.
@@ -196,7 +196,7 @@ for section in structure:
     if section=="verse":
         ET.SubElement(track,"bbtco",
                             {"usesyle":"1","name":"",
-                            "len":sectionLengths["verse"]*192,
+                            "len":str(sectionLengths["verse"]*192),
                             "color":"4294901760",
                             "pos":str(x),
                             "muted":"0"})
@@ -303,7 +303,7 @@ FXChannel=ET.SubElement(FXMixer,"fxchannel",{"num":"0",
 # FX chain
 LMMSutil.FXChain(FXChannel)
 
-ET.SubElement(song,"timeline",{"lp0pos":"0","lp1pos":str(songbars*192),"lpstate":"1"})
+ET.SubElement(song,"timeline",{"lp0pos":"0","lp1pos":str((songbars+1)*192),"lpstate":"1"})
 #-------------------------Writing------------------------------
 # Time for the homebrew helper definitions to make random words.
 import abcutil

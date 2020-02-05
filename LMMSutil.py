@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET # Time to grow some trees.
 import random as r
-
+import base64
 # This makes non-drums.
 # This also makes drums. For the most part it's the same as the instruments, but the values are going to be different.
 # For instance, if it makes a Nescaline drum, it makes sure the noise channel is on.
