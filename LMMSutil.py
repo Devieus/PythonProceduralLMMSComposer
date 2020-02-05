@@ -102,20 +102,20 @@ def createInstrument(instrumentName,drum=0):
 
 
 # Make an instrument and attach it to the parent parameter.
-def makeInstrument(parent, pan="0", fxch="0", pitchrange="1", pitch="0",
+def makeInstrument(parent, pan=2, fxch="0", pitchrange="1", pitch="0",
                    basenote="57", vol="100", instrumentName="nes",drum=0):
     # Set the basic variables every track has, pan, volume, that sort of stuff.
-    instrumentTrack=ET.SubElement(parent,"instrumenttrack",{"pan":pan,
+    instrumentTrack=ET.SubElement(parent,"instrumenttrack",{"pan":["-60","60","0"][pan],
                                                            "fxch":fxch,
                                                            "pitchrange":pitchrange,
                                                            "pitch":pitch,
                                                            "basenote":basenote,
-                                                           "vol":vol})
+                                                           "vol":["60",vol][drum]})
     # A branching path emerges, depending on the instrument of choice. (TBA)
     """These are the instruments available:
         nes(=Nescaline)
         tripleoscillator
-        audiofileprocessor*
+        audiofileprocessor***
         bitinvader*
         papu(=FreeBoy)*
         kicker
@@ -132,6 +132,7 @@ def makeInstrument(parent, pan="0", fxch="0", pitchrange="1", pitch="0",
         
         * Uses a graph, optional for freeboy.
         ** Embedded synth
+        *** Relative file paths
         """
     # Every instrument has a specific name, "nes" is for nescaline.
     instrument=ET.SubElement(instrumentTrack,"instrument", {"name":instrumentName})
@@ -250,7 +251,7 @@ def makeTrack(parent,type):
 
 def FXChain(parent):
     #return an FX chain that contains the TAP reverberator.
-    fxchain=ET.SubElement(parent, "fxchain", {"numofeffects": "0", "enabled": "0"})
+    fxchain=ET.SubElement(parent, "fxchain", {"numofeffects": "1", "enabled": "1"})
     fx=ET.SubElement(fxchain,"effect",{"name":"ladspaeffect",
         "autoquit_numerator":"4",
         "on":"1",
@@ -262,15 +263,15 @@ def FXChain(parent):
     controls=ET.SubElement(fx,"ladspacontrols",{"ports":"8"})
     ET.SubElement(controls,"port00",{"data":"1000"}) #delay (ms)
     ET.SubElement(controls,"port01",{"data":"0"}) #dry
-    ET.SubElement(controls,"port02",{"data":"-5"}) #wet
+    ET.SubElement(controls,"port02",{"data":"0"}) #wet
     ET.SubElement(controls,"port03",{"data":"1"}) #comb
     ET.SubElement(controls,"port04",{"data":"1"}) #allpass
     ET.SubElement(controls,"port05",{"data":"1"}) #bandpass
     ET.SubElement(controls,"port06",{"data":"1"}) #enhanced stereo
-    ET.SubElement(controls,"port07",{"data":"24"}) #type
+    ET.SubElement(controls,"port07",{"data":str(r.randint(0,42))}) #type
     key=ET.SubElement(fx,"key")
     ET.SubElement(key,"attribute",{"name":"file","value":"tap_reverb"})
-    ET.SubElement(key,"plugin",{"name":"file","value":"tap_reverb"})
+    ET.SubElement(key,"attribute",{"name":"plugin","value":"tap_reverb"})
     return fxchain
 """
 A thing about types.
@@ -303,8 +304,8 @@ keys=[]
 key=r.randint(0,7)
 # Major scale, change for modes or esotheric scales. Add the key.
 scale=[0+key,2+key,4+key,5+key,7+key,9+key,11+key]
-# Add the scale three times
-for x in range(3):
+# Add the scale two times times
+for x in range(2):
     # But do it in a way that adds it in different octaves.
     for y in scale:
         # Every time it gets to add a multiple of 12 in some way.

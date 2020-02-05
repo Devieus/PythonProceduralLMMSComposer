@@ -1,7 +1,10 @@
 import xml.etree.ElementTree as ET # Time to grow some trees.
+from copy import deepcopy
+
 import LMMSutil
 import random as r
 # Variables
+outroPosition=0
 """
 So for the sake of argument, a minute song itself will be a total of 192 len/bar, 4 beats/bar, 120 beats/min
 So 30 bars=30*192=5760 len per minute at 120bpm.
@@ -28,17 +31,17 @@ intro-section-chorus-section(-chorus-section)(-bridge-section)(-chorus-section)-
 
 """
 # Calculate section lengths.
-sectionLengths={"intro":r.randint(0, 4),
-    "section":r.randint(4,8),
-    "chorus":r.randint(4,8),
-    "bridge":r.randint(0,4),
-    "outro":r.randint(0,4),
-                }
+sectionLengths={"intro":r.randint(0, 4)*2,
+    "verse":r.randint(4,8)*2,
+    "chorus":r.randint(4,8)*2,
+    "bridge":r.randint(0,4)*2,
+    "outro":r.randint(0,4)*2,
+    }
 # A place to store valuables.
 # Notes go here, the key (pitch), relative position (just add bars*192 for absolute) and length.
 # They can be stored in pattern tags. The pattern tags can be stored here.
 songDic={"intro":[],
-    "section":[],
+    "verse":[],
     "chorus":[],
     "bridge":[],
     "outro":[],
@@ -46,13 +49,13 @@ songDic={"intro":[],
 # Calculate section counts.
 chorusCount=r.randint(1,3)
 # Graft the structure with keys of the dictionaries.
-structure=["intro","section","chorus","section"]
+structure=["intro","verse","chorus","verse"]
 # Extend structure bit
-if chorusCount>1: structure.extend(["chorus","section"])
+if chorusCount>1: structure.extend(["chorus","verse"])
 # by
-if sectionLengths["bridge"]>1: structure.extend(["bridge", "section"])
+if sectionLengths["bridge"]>1: structure.extend(["bridge", "verse"])
 # bit
-if chorusCount>2: structure.extend(["chorus","section"])
+if chorusCount>2: structure.extend(["chorus","verse"])
 # and finish by adding the outro.
 structure.append("outro")
 # Now there's a dictionary for section lengths in bars, one for section notes, and a list for the structure.
@@ -62,7 +65,7 @@ for x in structure:
     songbars+=sectionLengths[x]
 # Now songbars is a number between 12 and 72.
 # Calculate upper limit to the bpm, e.g. with 12 bars a bpm of 12*4=48 is max for one minute.
-bpm=r.randint(songbars/2,songbars)
+bpm=r.randint(songbars*2,songbars*4)
 # This may be interesting later on.
 numerator=4
 #-------------------------Beginnings----------------------------
@@ -74,12 +77,12 @@ tree=ET.ElementTree(lmms_project)
 ET.SubElement(lmms_project, "head", {"timesig_numerator": str(numerator),
                                      "mastervol": "100",
                                      "timesig_denominator": "4",
-                                     "bpm": str(bpm), ##This one can be randomized.
+                                     "bpm": str(bpm),
                                      "masterpitch": "0"})
 # The song element contains the rest.
 song=ET.SubElement(lmms_project, "song")
 # The track container is the window containing all the tracks (the others will be coming up later).
-trackcontainer=ET.SubElement(song, "trackcontainer", {"width": "600",
+trackcontainer=ET.SubElement(song, "trackcontainer", {"width": "900",
                                             "x":"5",
                                             "y":"5",
                                             "maximized":"0",
@@ -101,7 +104,7 @@ These patterns can have names, which will be the keys of songDic/sectionLengths.
 
 Pattern tags will be created and appended in the dictionary. This will be repeated for every track.
 """
-# Compose three tracks for every section
+# Compose three tracks for every verse
 for tracknumber in range(3):
     # Every section has an entry here
     for section in songDic:
@@ -116,7 +119,9 @@ for tracknumber in range(3):
         while length<sectionLengths[section]*192:
             # pos=starting position, vol=velocity, key=pitch (60=C5), len=duration (48=quarter), pan=pan.
             noteLength=r.randint(1,4)*24
-            ET.SubElement(pattern,"note",{"pos":str(length),"vol":"100","key":str(r.choice(LMMSutil.keys)),"len":str(noteLength),"pan":"0"})
+            # Very, very crude rest implementation.
+            if not r.choice(range(10))==0:
+                ET.SubElement(pattern,"note",{"pos":str(length),"vol":str(r.randint(60,100)),"key":str(r.choice(LMMSutil.keys)),"len":str(noteLength),"pan":"0"})
             # Fun fact, a bar is exactly 192 ticks long.
             length+=noteLength
         # Add this pattern to the dictionary.
@@ -132,18 +137,19 @@ for tracknumber in range(3):
     track = ET.SubElement(trackcontainer, "track", {"type": "0", "muted": "0", "solo": "0", "name": LMMSutil.word(2)})
     # Creates a Nescaline track by default, pass instrumentName with this to change it.
     # Adds all the bells and whistles in the process.
-    instrumenttrack = LMMSutil.makeInstrument(track, instrumentName=r.choice(["nes", "tripleoscillator", "sfxr"]))
+    instrumenttrack = LMMSutil.makeInstrument(track,pan=tracknumber, instrumentName=r.choice(["nes", "tripleoscillator", "sfxr"]),basenote=str(45+tracknumber*12))
     for section in structure:
         # Check if this section has length.
-        if sectionLengths[section]==0:
-            # Intros, outros and bridges shouldn't be added if they have no length.
-            break
-        # Add the corresponding pattern here
-        added=ET.SubElement(songDic[section][tracknumber])
-        # Shift this pattern's position.
-        added.attrib["pos"]+=position
-        # Move the position up to the new value.
-        position+=sectionLengths[section]*192
+        # Intros, outros and bridges shouldn't be added if they have no length.
+        if sectionLengths[section]>0:
+            # Add a deep copy of the corresponding pattern here using append.
+            track.append(deepcopy(songDic[section][tracknumber]))
+            # Shift this pattern's position.
+            track[-1].attrib["pos"]=str(position)
+            # Don't worry about this part.
+            if section=="outro": outroPosition=position
+            # Move the position up to the new value.
+            position+=sectionLengths[section]*192
 
 # Add phat beats here.
 track=ET.SubElement(trackcontainer,"track",{"type":"1","muted":"0","solo":"0","name":LMMSutil.word(2)})
@@ -163,7 +169,7 @@ for x in range(3):
     # From here on it's the same old song. One instrument per drum sound.
     drumtrack=ET.SubElement(drumcontainer,"track",{"type":"0","muted":"0","solo":"0","name":LMMSutil.word(2)})
     # Add instrument.
-    instrumenttrack=LMMSutil.makeInstrument(drumtrack,instrumentName=r.choice(["nes","sfxr"]),drum=1)
+    instrumenttrack=LMMSutil.makeInstrument(drumtrack, pan=x,instrumentName=r.choice(["nes","sfxr"]),drum=1)
     # And the drum pattern.
     pattern = ET.SubElement(drumtrack,"pattern",{"pos":"0","type":"0","muted":"0","name":"","steps":"16"})
     for y in range(8):
@@ -173,22 +179,83 @@ for x in range(3):
         # That doesn't mean the second hit is on 16, but on 192/16=12.
         # Not going off-beat just yet, hits are on every half note instead.
         ET.SubElement(pattern,"note",{"pos":str(24*y),"vol":"100","key":"57","len":"-192","pan":"0"}) if r.choice([True,False]) else 1
-# Now to add this drumtrack
-bbtco=ET.SubElement(track,"bbtco",
-                    {"usesyle":"1","name":"",
-                    "len":str(int(songbars*192)),
-                    "color":"4286611584",
-                    "pos":"0","muted":"0"})
+    # So here's how multiple drum tracks happen:
+    pattern = ET.SubElement(drumtrack, "pattern", {"pos": "0", "type": "0", "muted": "0", "name": "", "steps": "16"})
+    # You just kinda make another pattern.
+    for y in range(8):
+        # Drums ( `)^( `)
+        ET.SubElement(pattern, "note",
+                      {"pos": str(24 * y), "vol": "100", "key": "57", "len": "-192", "pan": "0"}) if r.choice(
+            [True, False]) else 1
+# Gonna borrow x here
+#†# Please don't, do this at the same time they're placed.
+x=0
+# Now to add this drumtrack (these are basically the patterns, but in the grand scheme of things).
+for section in structure:
+    # Check to see if the section is "section"
+    if section=="verse":
+        ET.SubElement(track,"bbtco",
+                            {"usesyle":"1","name":"",
+                            "len":sectionLengths["verse"]*192,
+                            "color":"4294901760",
+                            "pos":str(x),
+                            "muted":"0"})
+    x+=sectionLengths[section]*192
+#-----second drum track------
+# Time for a ghetto solution for now, just do the whole thing again.
+track=ET.SubElement(trackcontainer,"track",{"type":"1","muted":"0","solo":"0","name":LMMSutil.word(2)})
+# A BBtrack element, but this one's empty.
+bbtrack=ET.SubElement(track,"bbtrack")
+# That was easy.
+# Gonna borrow x here
+#†# Stop it already...
+x=0
+# Now to add this drumtrack, but now for the chorus. Intros, outros and bridges get no drums.
+for section in structure:
+    # Check to see if the section is "chorus"
+    if section=="chorus":
+        ET.SubElement(track,"bbtco",
+                            {"usesyle":"1","name":"",
+                            "len":sectionLengths["chorus"]*192,
+                            "color":"4294901760",
+                            "pos":str(x),
+                            "muted":"0"})
+    x+=sectionLengths[section]*192
+#------------------------Tempo automation---------------------probably needs to be deleted.
+# In this part, the tempo increases during the intro from a low value to the intended BPM, given there is one.
+# Make a new track for the automation patterns of type 5 (non-global automation)
+track=ET.SubElement(trackcontainer,"track",{"type":"5","muted":"0","name":LMMSutil.word(2),"solo":"0"})
+# It holds an empty automationtrack for some reason.
+ET.SubElement(track,"automationtrack")
+# Now to fill it with tempo automation.
+if sectionLengths["intro"]>0:
+    automationPattern=ET.SubElement(track,"automationpattern",{"len":str(sectionLengths["intro"]*192),
+                                    "name":"Tempo","prog":"1","pos":"0","tens":"1","mute":"0"})
+    # Starting with a BPM around 1/3 to 1/2 the intended value.
+    ET.SubElement(automationPattern,"time",{"value":str(r.randint(int(bpm/3),int(bpm/2))),"pos":"0"})
+    # Now move it up to the correct value.
+    ET.SubElement(automationPattern,"time",{"value":str(bpm),"pos":str(sectionLengths["intro"]*192)})
+    # Add an object tag that identifies what it's supposed to automate.
+    # This is arbitrary based on time, so needs manual fixing.
+    ET.SubElement(automationPattern,"object",{"id":"65535"})
+# Now decrease the tempo to a possibly different value in the outro, given there is one
+if sectionLengths["outro"]>0:
+    automationPattern = ET.SubElement(track, "automationpattern",{"len":str(sectionLengths["outro"]*192),
+                                    "name":"Tempo","prog":"1","pos":str(outroPosition),"tens":"1","mute":"0"})
+    # Starting with the base BPM.
+    ET.SubElement(automationPattern,"time",{"value":str(bpm),"pos":"0"})
+    # Now move it down to around 1/3 to 1/2 the base value (positions are relative to the pattern position).
+    ET.SubElement(automationPattern,"time",{"value":str(r.randint(int(bpm/3),int(bpm/2))),"pos":str(sectionLengths["outro"]*192)})
+    ET.SubElement(automationPattern, "object", {"id": "65535"})
 #----------------------------FX--------------------------------
-# It also holds all the main tracks, like this automation track (type 6).
-
+# This holds all the main tracks, like this automation track (type 6).
 # The automation track, it actually holds all the global automation tracks, not just one of them.
 automationTrack=ET.SubElement(song,"track",{"muted":"0",
                                             "type":"6",
                                             "name":"Automation track",
                                             "solo":"0"})
 
-# An empty automation track since automation tracks don't have properties.
+# An empty automation track since automation tracks don't have properties. Not super conveniently named.
 ET.SubElement(automationTrack,"automationtrack")
 # So getting back to that bar length again,
 ET.SubElement(automationTrack,"automationpattern",{"tens":"1",
@@ -202,19 +269,19 @@ ET.SubElement(automationTrack,"automationpattern",{"tens":"1",
                                                    "name":"Denominator",
                                                    "pos":"0",
                                                    "len":"192"})
-# And any power of 2 of course, right until 64.
+# And any power of 2 of course, right until 64. That's because of triplets. It does make quintuplets a little awkward though.
 ET.SubElement(automationTrack,"automationpattern",{"tens":"1",
                                                    "mute":"0",
                                                    "name":"Tempo",
                                                    "pos":"0",
                                                    "len":"192"})
-# That's because of triplets.
+# Master volume.
 ET.SubElement(automationTrack,"automationpattern",{"tens":"1",
                                                    "mute":"0",
                                                    "name":"Master Volume",
                                                    "pos":"0",
                                                    "len":"192"})
-# It does make quintuplets a little awkward though.
+# Master pitch.
 ET.SubElement(automationTrack,"automationpattern",{"tens":"1",
                                                    "mute":"0",
                                                    "name":"Master pitch",
@@ -229,14 +296,14 @@ FXMixer=ET.SubElement(song,"fxmixer",{"x":"5",
                                       "visible":"1",
                                       "minimized":"0"})
 # FX channel
-FXChannel=ET.SubElement(FXMixer,"fxchain",{"num":"0",
+FXChannel=ET.SubElement(FXMixer,"fxchannel",{"num":"0",
                                            "muted":"0",
                                            "volume":"1",
                                            "name":"master"})
 # FX chain
 LMMSutil.FXChain(FXChannel)
 
-
+ET.SubElement(song,"timeline",{"lp0pos":"0","lp1pos":str(songbars*192),"lpstate":"1"})
 #-------------------------Writing------------------------------
 # Time for the homebrew helper definitions to make random words.
 import abcutil
