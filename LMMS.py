@@ -68,6 +68,7 @@ for x in structure:
 bpm=r.randint(songbars*2,songbars*4)
 # This may be interesting later on.
 numerator=4
+progDic={}# Oh my, what's this then.
 #-------------------------Beginnings----------------------------
 # Start with a single element.
 lmms_project=ET.Element("lmms-project", {"version": "1.0", "creator": "Devieus", "creatorversion": "1.2.1", "type": "song"})
@@ -109,19 +110,63 @@ for tracknumber in range(3):
     # Every section has an entry here
     for section in songDic:
         # The pattern contains the notes.
-        #†# The position needs to match its position in the timeline to not overlap!
-        # Do this with pattern.attrib["pos"]=x, but since it will be hidden away, use
-        # songDic[section][tracknumber].attrib=whatever the current position is based on sectionLengths*192
         pattern=ET.Element("pattern",{"pos":0,"type":"0","muted":"0","name":section,"steps":"16"})
         # Add a bunch of notes.
         length=0
+        # The first note is going to be the middle tonic (second octave)
+        note=LMMSutil.keys[len(LMMSutil.scale)]
+        # Don't worry about this.
+        breaker=False
         # Every section has its own length. If a section has length 0 it gets skipped.
-        while length<sectionLengths[section]*192:
+        while length<sectionLengths[section]*192 and not breaker:
             # pos=starting position, vol=velocity, key=pitch (60=C5), len=duration (48=quarter), pan=pan.
             noteLength=r.randint(1,4)*24
+            # Fill the gap if it's too long to prevent overlap.
+            #†# remove this once multiple tracks are implemented for J-cuts/negative transition lengths.
+            if noteLength+length>sectionLengths[section]*192:
+                noteLength=sectionLengths[section]*192-length
+                # Flip the breaker, but still add the current note (or rest; see next if statement) to round it off. The while statement will end now
+                breaker=True
             # Very, very crude rest implementation.
             if not r.choice(range(10))==0:
-                ET.SubElement(pattern,"note",{"pos":str(length),"vol":str(r.randint(60,100)),"key":str(r.choice(LMMSutil.keys)),"len":str(noteLength),"pan":"0"})
+                # Add the note.
+                ET.SubElement(pattern,"note",{"pos":str(length),"vol":str(r.randint(60,100)),"key":str(note),"len":str(noteLength),"pan":"0"})
+                # Choose a note and remember it.
+                """A note about the melody:
+                The next note should be one higher 30%, one lower 30%, two higher 10%, two lower 10%, the same 10%
+                one of the tonics 5% each.
+                All that without actually going out of bounds.
+                So it could be a Markov chain-ish thing, but only if the note is one of the following:
+                    The highest note (LMMSutil.keys[len(keys)-1])
+                    The second-highest note (LMMSutil.keys[len(LMMSutil.keys)-2])
+                    The middle tonic (LMMSutil.keys[len(LMMSutil.scale)], but only if the span is two octaves)
+                    The lowest note (and the lower tonic) (LMMSutil.keys[0])
+                    The second-lowest note (LMMSutil.keys[1])
+                Different things happen on each of these."""
+                # lol switch statements.
+                try:
+                    # note's exact pitch is known, so the next note can always be relative.
+                    a=LMMSutil.keys.index(note)
+                    # shift the index
+                    a+={LMMSutil.keys[len(LMMSutil.keys)-1]:r.choice([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+                                                -2,-2,-2,-3,-3,0,0,0,
+                                                -len(LMMSutil.keys),-len(LMMSutil.scale)]),
+                    LMMSutil.keys[len(LMMSutil.keys)-2]:r.choice([-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+                                                -2,-2,-2,1,1,0,0,0,
+                                                -(len(LMMSutil.keys)-1),-(len(LMMSutil.scale)-1)]),
+                    LMMSutil.keys[len(LMMSutil.scale)]:r.choice([-1,-1,-1,-1,-1,-1,1,1,1,1,1,1,
+                                               -2,-2,2,2,0,0,-(len(LMMSutil.scale)),-(len(LMMSutil.scale))]),
+                    LMMSutil.keys[1]:r.choice([1,1,1,1,1,1,1,1,1,1,
+                                               2,2,2,-1,-1,-1,0,0,0,
+                                               (len(LMMSutil.scale)-1)]),
+                LMMSutil.keys[0]:r.choice([1,1,1,1,1,1,1,2,2,2,2,3,3,3,0,0,0,0,len(LMMSutil.scale),len(LMMSutil.scale)])}[note]
+                    note=LMMSutil.keys[a]
+                # Exceptions are really just if statements on crack.
+                except KeyError:
+                    # Default action. Since it's unknown which note it is exactly, manipulating the note variable is easiest.
+                    a=LMMSutil.keys.index(note)
+                    a=r.choice([a+1,a+1,a+1,a+1,a+1,a+1,a-1,a-1,a-1,a-1,a-1,a-1,a+2,a+2,a-2,a-2,a,a,0,len(LMMSutil.scale)])
+                    note=LMMSutil.keys[a]
             # Fun fact, a bar is exactly 192 ticks long.
             length+=noteLength
         # Add this pattern to the dictionary.
@@ -129,28 +174,39 @@ for tracknumber in range(3):
 """
 Great, now to add the section patterns in the right place and the right order.
 """
-# Place sections in the tree. Three times for three tracks.
+# Place sections in the tree. Three times for three tracks, twice.
 for tracknumber in range(3):
     # Keep track of the position in the song.
     position=0
     # This holds all the music. Type 0 is for instrument.
     track = ET.SubElement(trackcontainer, "track", {"type": "0", "muted": "0", "solo": "0", "name": LMMSutil.word(2)})
+    track2 = ET.SubElement(trackcontainer, "track", {"type": "0", "muted": "0", "solo": "0", "name": LMMSutil.word(2)})
     # Creates a Nescaline track by default, pass instrumentName with this to change it.
     # Adds all the bells and whistles in the process.
-    instrumenttrack = LMMSutil.makeInstrument(track,pan=tracknumber, instrumentName=r.choice(["nes", "tripleoscillator", "sfxr"]),basenote=str(45+tracknumber*12))
+    instrumentName=r.choice(["nes", "tripleoscillator", "sfxr","bitinvader","sid"])
+    instrumenttrack = LMMSutil.makeInstrument(track,pan=tracknumber, instrumentName=instrumentName,basenote=str(45+tracknumber*12))
+    instrumentName=r.choice(["nes", "tripleoscillator", "sfxr"])
+    instrumenttrack2 = LMMSutil.makeInstrument(track2,pan=tracknumber, instrumentName=instrumentName,basenote=str(45+tracknumber*12))
     for section in structure:
         # Check if this section has length.
         # Intros, outros and bridges shouldn't be added if they have no length.
         if sectionLengths[section]>0:
-            # Add a deep copy of the corresponding pattern here using append.
-            track.append(deepcopy(songDic[section][tracknumber]))
-            # Shift this pattern's position.
-            track[-1].attrib["pos"]=str(position)
-            # Don't worry about this part.
-            if section=="outro": outroPosition=position
+            if section=="verse":
+                # Add a deep copy of the corresponding pattern here using append.
+                track.append(deepcopy(songDic[section][tracknumber]))
+                # Shift this pattern's position.
+                track[-1].attrib["pos"] = str(position)
+            else: # Move the intro, outro, bidge and choruses to a different instrument.
+                # Add a deep copy of the corresponding pattern here using append.
+                track2.append(deepcopy(songDic[section][tracknumber]))
+                # Shift this pattern's position.
+                track2[-1].attrib["pos"]=str(position)
+                # Don't worry about this part.
+                if section=="outro": outroPosition=position
             # Move the position up to the new value.
             position+=sectionLengths[section]*192
 
+#--------------------Drums-----------------------------------
 # Add phat beats here.
 track=ET.SubElement(trackcontainer,"track",{"type":"1","muted":"0","solo":"0","name":LMMSutil.word(2)})
 # A BBtrack element container.
@@ -216,7 +272,7 @@ for section in structure:
     if section=="chorus":
         ET.SubElement(track,"bbtco",
                             {"usesyle":"1","name":"",
-                            "len":sectionLengths["chorus"]*192,
+                            "len":str(sectionLengths["chorus"]*192),
                             "color":"4294901760",
                             "pos":str(x),
                             "muted":"0"})

@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET # Time to grow some trees.
 import random as r
-import base64
+
 # This makes non-drums.
 # This also makes drums. For the most part it's the same as the instruments, but the values are going to be different.
 # For instance, if it makes a Nescaline drum, it makes sure the noise channel is on.
@@ -45,7 +45,7 @@ def createInstrument(instrumentName,drum=0):
     #  wavetype2="0" finel1="0" wavetype0="0" pan1="0" modalgo1="2" coarse0="0" phoffset0="0" finer2="0" userwavefile0="" finer0="0" modalgo2="2" vol0="33" pan2="0" coarse1="-12" userwavefile2="" vol2="33" vol1="33" phoffset2="0" finel2="0" coarse2="-24" finer1="0" pan0="0" userwavefile1="" phoffset1="0" wavetype1="0" stphdetun2="0" modalgo3="2" stphdetun0="0" finel0="0" stphdetun1="0"
     if instrumentName=="tripleoscillator": return {"modalgo2":"2", #osc1+2, how osc 2 modules osc 1.
     "modalgo3":"2",#osc2+3. phase modulate 0, amp modulate 1, mix 2, sync 3, frequency modulate 4.
-    "wavetype0":"2", #wave type, sine 0, tri 1, saw 2, square 3, moog 4, exponential 5, noise 6, custom 7
+    "wavetype0":r.choice(["2","3"]), #wave type, sine 0, tri 1, saw 2, square 3, moog 4, exponential 5, noise 6, custom 7
     "userwavefile0":"", #use a custom wave file as oscillator. Type must be 7
     "vol0":"10", #oscillator volume [0,200]
     "pan0":"0", #pan of osc.
@@ -54,7 +54,7 @@ def createInstrument(instrumentName,drum=0):
     "finer0":"0", #right channel detune.
     "phoffset0":"0", #phase offset [0-360] degrees (2 square waves cancel eachother out at 180).
     "stphdetun0":"0", #stereo phase detune (left channel)
-    "wavetype1":"2", #all oscilllators are identical.
+    "wavetype1":r.choice(["2","3"]), #all oscilllators are identical.
     "userwavefile1":"",
     "vol1":"10",
     "pan1":"0",
@@ -98,6 +98,54 @@ def createInstrument(instrumentName,drum=0):
     "hpFilCut": "0", #high pass filter.
     "hpFilCutSweep": "0", #sweeps cutoff level.
     }
+    if instrumentName=="sid": return {"volume":"15", # The overal volume that exists for some reason.
+    "filterResonance":str(r.randint(0,15)), # The filter dials only work on the tone generators that have filter enabled.
+    "filterFC":str(r.randint(0,2047)), # They may be useful for individual tracks, just randomize it for kicks.
+    "filterMode":str(r.randint(0,3)), # High pass, band pass, low pass.
+    "chipModel":"1", # There are two models, the 6581 and the 8580. The 6581 pops in this one, so keep on 8580.
+    "voice3Off":"0", # Turn off the third tone generator.
+    "attack0":"8", # ADSR envelope for the first tone generator.
+    "decay0":"8",
+    "sustain0":"15",
+    "release0":"8",
+    "pulsewidth0":"2048", # If the wave form is 1, this does something, namely the shape of the square wave.
+    "coarse0":"0", # Course detune in semitones from -24 (2 octaves down) to 24 (2 octaves up).
+    "waveform0":"1", # Tri wave (0), square wave (1), sawtooth (2), noise (3). Note that the noise is pitched.
+    "ringmod0":r.choice(["0","1"]), # Enables the ring mod for the tone generator.
+    "filtered0":r.choice(["0","1"]), # Enable to make the filter mode do things.
+    "test0":"0", # "Test" the chip, used for synced to external events, functionally this mutes the tone generator.
+    "sync0":"0", # Synchronize with the previous (cyclic) tone generator.
+    "attack1":"8", # Second tone generator.
+    "decay1":"8",
+    "sustain1":"15",
+    "release1":"8",
+    "pulsewidth1":"2048",
+    "coarse1":"0",
+    "waveform1":"1",
+    "ringmod1":r.choice(["0","1"]),
+    "filtered1":r.choice(["0","1"]),
+    "test1":"0",
+    "sync1":"0",
+    "attack2":"8", # Third tone generator.
+    "decay2":"8",
+    "sustain2":"15",
+    "release2":"8",
+    "pulsewidth2":"2048",
+    "coarse2":"0",
+    "waveform2":"1",
+    "ringmod2":r.choice(["0","1"]),
+    "filtered2":r.choice(["0","1"]),
+    "test2":"0",
+    "sync2":"0"}# This one's weird.
+    if instrumentName=="bitinvader":
+        # Choose a random wave form length between 4 and 200.
+        samplelength=r.randint(4,200)
+        return {"sampleLength":str(samplelength), # The sample length. This value is king and ignores the actual shape.
+    "version":"0.1", # Does nothing.
+    "normalize":"1", # Stretches the wave form vertically. Tends to cause clipping if the volume's too high. Set this track to about 40 volume.
+    "sampleShape":shapeSample(samplelength), # The sample shape is a series of floats encrypted to a byte64 object.
+    "interpolation":r.choice(["0","1"])}# Use linear interpolation between the points instead of discrete. Little effect on smooth enough forms.
+
     # Might add others later, depending.
 
 
@@ -113,8 +161,8 @@ def makeInstrument(parent, pan=2, fxch="0", pitchrange="1", pitch="0",
                                                            "vol":["60",vol][drum]})
     # A branching path emerges, depending on the instrument of choice. (TBA)
     """These are the instruments available:
-        nes(=Nescaline)
-        tripleoscillator
+        nes(=Nescaline)+
+        tripleoscillator+
         audiofileprocessor***
         bitinvader*
         papu(=FreeBoy)*
@@ -124,7 +172,7 @@ def makeInstrument(parent, pan=2, fxch="0", pitchrange="1", pitch="0",
         monstro
         OPL2(=OpulenZ)(quiet)
         organic
-        sfxr
+        sfxr+
         sid
         vibedstrings(=Vibed)*
         watsyn*
@@ -301,7 +349,8 @@ Cap it off by adding C6 (12x6=72)
 keys=[]
 # For now, a fixed major scale
 # A key is chosen at random, C is 0, B is 7, all exists in between.
-key=r.randint(0,7)
+key=r.randint(0,11)
+print(key)
 # Major scale, change for modes or esotheric scales. Add the key.
 scale=[0+key,2+key,4+key,5+key,7+key,9+key,11+key]
 # Add the scale two times times
@@ -346,3 +395,18 @@ def word(x):
     for y in range(x):
         result+=syl()
     return result
+"""
+Drawing waves
+"""
+from struct import pack
+from base64 import b64encode
+# Sample shaper
+def shapeSample(length,onlyPositive=False):
+    # Make a byte of floats to add other bytes to.
+    byte=b''
+    # A sample length of 4 (bitinvader's minimum) only needs 4 floats, but freeboy has 32 and most others have 200.
+    for x in range(length):
+        # The range is between 0f to 1f for freeboy (and other only positive graphs) or between -1f and 1f otherwise.
+        byte+=pack("f",r.random()) if onlyPositive else pack("f",r.random()*2-1)
+    # do a magic.
+    return str(b64encode(byte))[2:-1]
