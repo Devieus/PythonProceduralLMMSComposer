@@ -72,13 +72,14 @@ def createInstrument(instrumentName,drum=0):
     "finel2":"0",
     "finer2":"0",
     "phoffset2":"0",
-    "stphdetun2":"0",}
+    "stphdetun2":"0",
+    }
     if instrumentName=="sfxr": return {"version": "1", #does nothing.
     "waveForm": ["0","3"][drum], #waveform, square 0, saw 1, sine 2, noise 3. All other values are normals.
-    "att": "0", #attack.
+    "att": ["0","0.7"][drum], #attack.
     "hold": str([str(r.choice(range(10))/10),"0"][drum]), #hold (time until sustain).
     "sus": "0", #punch (very short).
-    "dec": ["0.4","0.1"][drum], #decay (sustain time).
+    "dec": ["0.4","0.5"][drum], #decay (sustain time).
     "startFreq": ["0.352",str(r.choice(range(600))/1000+.2)][drum], #0.352 is natural, use a range for drums.
     "minFreq": "0", #slide cap, but only downards.
     "slide": "0", #slide amount [-1,1], magnitude scales both speed and depth. Loses effectiveness beyond .25.
@@ -104,7 +105,7 @@ def createInstrument(instrumentName,drum=0):
     "filterMode":str(r.randint(0,3)), # High pass, band pass, low pass.
     "chipModel":"1", # There are two models, the 6581 and the 8580. The 6581 pops in this one, so keep on 8580.
     "voice3Off":"0", # Turn off the third tone generator.
-    "attack0":"8", # ADSR envelope for the first tone generator.
+    "attack0":"0", # ADSR envelope for the first tone generator.
     "decay0":"8",
     "sustain0":"15",
     "release0":"8",
@@ -115,7 +116,7 @@ def createInstrument(instrumentName,drum=0):
     "filtered0":r.choice(["0","1"]), # Enable to make the filter mode do things.
     "test0":"0", # "Test" the chip, used for synced to external events, functionally this mutes the tone generator.
     "sync0":"0", # Synchronize with the previous (cyclic) tone generator.
-    "attack1":"8", # Second tone generator.
+    "attack1":"0", # Second tone generator.
     "decay1":"8",
     "sustain1":"15",
     "release1":"8",
@@ -126,7 +127,7 @@ def createInstrument(instrumentName,drum=0):
     "filtered1":r.choice(["0","1"]),
     "test1":"0",
     "sync1":"0",
-    "attack2":"8", # Third tone generator.
+    "attack2":"0", # Third tone generator.
     "decay2":"8",
     "sustain2":"15",
     "release2":"8",
@@ -145,12 +146,52 @@ def createInstrument(instrumentName,drum=0):
     "normalize":"1", # Stretches the wave form vertically. Tends to cause clipping if the volume's too high. Set this track to about 40 volume.
     "sampleShape":shapeSample(samplelength), # The sample shape is a series of floats encrypted to a byte64 object.
     "interpolation":r.choice(["0","1"])}# Use linear interpolation between the points instead of discrete. Little effect on smooth enough forms.
-
+    if instrumentName=="watsyn": return {"abmix":"0", # The amount A to B is being output. -100 is only A, 100 is only B
+    "envAmt":str(r.randint(-200,200)), # The strength of the envelope going from mix to A or B and back. -200 is to A, 200 is to B. Values beyond 100 increase speed.
+    "envAtt":str(r.randint(0,200)), # The time it takes to go from mix to A/B in ms [0,2000].
+    "envAtt_syncmode":"0", # Hidden value. Setting this to 1 sets the envAtt to 2000, does nothing otherwise.
+    "envAtt_numerator":"4", # Also hidden value, probably meant to work in conjunction with the sync mode.
+    "envAtt_denominator":"4", # Since sync mode cannot be saved as on, the meter values wouldn't matter anyway.
+    "envHold":str(r.randint(0,200)), # Duration to stay in A/B in ms [0,2000]
+    "envHold_syncmode":"0",
+    "envHold_numerator":"4",
+    "envHold_denominator":"4",
+    "envDec":str(r.randint(0,200)), # The time it takes to go from A/B back to mix in ms [0,2000].
+    "envDec_syncmode":"0",
+    "envDec_numerator":"4",
+    "envDec_denominator":"4",
+    "xtalk":"0", # Magic number that seems to keep other wave forms in mind.
+    "amod":"0", # A1 -> A2 modulation. 0 (mix), 1 (AM), 2 (Ring), 3 (PM).
+    "bmod":"0", # B1 -> B2 modulation. 0 (mix), 1 (AM), 2 (Ring), 3 (PM).
+    "a1_vol":"100", # Volume of the A1 wave.
+    "a1_pan":"0", # Pan of the A1 wave.
+    "a1_mult":"8", # Frequency multiplier of the A1 wave, which is this value /8 and can be used to adjust intonation.
+    "a1_ltune":str(int(r.gauss(0,2))), # Left detune of the A1 wave in cents [-600,600] for an octave's worth of range.
+    "a1_rtune":str(int(r.gauss(0,2))), # Right detune of the A1 wave in cents [-600,600] for an octave's worth of range.
+    "a2_vol":"0",
+    "a2_pan":"0",
+    "a2_mult":"8",
+    "a2_ltune":"0",
+    "a2_rtune":"0",
+    "b1_vol":"100",
+    "b1_pan":"0",
+    "b1_mult":"8",
+    "b1_ltune":"0",
+    "b1_rtune":"0",
+    "b2_vol":"0",
+    "b2_pan":"0",
+    "b2_mult":"8",
+    "b2_ltune":"0",
+    "b2_rtune":"0",
+    "a1_wave":shapeSample(250), # 200 byte long shape of the wave for A1
+    "a2_wave":shapeSample(250),
+    "b1_wave":shapeSample(250),
+    "b2_wave":shapeSample(250)}
     # Might add others later, depending.
 
 
 # Make an instrument and attach it to the parent parameter.
-def makeInstrument(parent, pan=2, fxch="0", pitchrange="1", pitch="0",
+def makeInstrument(parent, pan=2, fxch="1", pitchrange="1", pitch="0",
                    basenote="57", vol="100", instrumentName="nes",drum=0):
     # Set the basic variables every track has, pan, volume, that sort of stuff.
     instrumentTrack=ET.SubElement(parent,"instrumenttrack",{"pan":["-60","60","0"][pan],
@@ -188,23 +229,26 @@ def makeInstrument(parent, pan=2, fxch="0", pitchrange="1", pitch="0",
     ET.SubElement(instrument,instrumentName,createInstrument(instrumentName,drum))
     # This is where the branching path ends.
     # eldata is for the envelope tab.
-    eldata=ET.SubElement(instrumentTrack,"eldata",{"fres":"0.5",
-                                                   "ftype":"0",
+    eldata=ET.SubElement(instrumentTrack,"eldata",{"fres":"2",
+                                                   "ftype":"14",
                                                    "fcut":"14000",
-                                                   "fwet":"0"})
+                                                   "fwet":["1","0"][drum]})
+    if drum==0:
+        connection=ET.SubElement(eldata,"connection")
+        ET.SubElement(connection,"fcut",{"id":"0"})
     # Envelope tab part 1, volume envelope.
     ET.SubElement(eldata,"elvol",{"lspd_denominator":"4",
-                                    "sustain":"0.5",
+                                    "sustain":"1",
                                     "pdel":"0",
                                     "userwavefile":"",
                                     "dec":"0.5",
                                     "lamt":"0",
                                     "syncmode":"0",
                                     "latt":"0",
-                                    "rel":"0.1",
-                                    "amt":"0",
+                                    "rel":"0.5",
+                                    "amt":["1","0"][drum],
                                     "x100":"0",
-                                    "att":"0",
+                                    "att":"0.7",
                                     "lpdel":"0",
                                     "hold":"0.5",
                                     "lshp":"0",
@@ -297,29 +341,46 @@ def makeTrack(parent,type):
     if type==5:
         return makeAutomation(parent)
 
-def FXChain(parent):
-    #return an FX chain that contains the TAP reverberator.
-    fxchain=ET.SubElement(parent, "fxchain", {"numofeffects": "1", "enabled": "1"})
-    fx=ET.SubElement(fxchain,"effect",{"name":"ladspaeffect",
-        "autoquit_numerator":"4",
-        "on":"1",
-        "wet":"1",
-        "gate":"0",
-        "autoquit_syncmode":"0",
-        "autoquit_denominator":"4",
-        "autoquit":"1"})
-    controls=ET.SubElement(fx,"ladspacontrols",{"ports":"8"})
-    ET.SubElement(controls,"port00",{"data":"1000"}) #delay (ms)
-    ET.SubElement(controls,"port01",{"data":"0"}) #dry
-    ET.SubElement(controls,"port02",{"data":"0"}) #wet
-    ET.SubElement(controls,"port03",{"data":"1"}) #comb
-    ET.SubElement(controls,"port04",{"data":"1"}) #allpass
-    ET.SubElement(controls,"port05",{"data":"1"}) #bandpass
-    ET.SubElement(controls,"port06",{"data":"1"}) #enhanced stereo
-    ET.SubElement(controls,"port07",{"data":str(r.randint(0,42))}) #type
-    key=ET.SubElement(fx,"key")
-    ET.SubElement(key,"attribute",{"name":"file","value":"tap_reverb"})
-    ET.SubElement(key,"attribute",{"name":"plugin","value":"tap_reverb"})
+def FXChain(parent,addReverb=False,addStereo=False):
+    if not addReverb and not addStereo: return ET.SubElement(parent,"fxchain",{"numofeffects":"0","enabled":"1"})
+    #return an FX chain that contains effects.
+    fxchain=ET.SubElement(parent, "fxchain", {"numofeffects": str(addReverb+addStereo), "enabled": "1"})
+    # add the TAP reverberator to the chain.
+    if addReverb:
+        fx=ET.SubElement(fxchain,"effect",{"name":"ladspaeffect",
+            "autoquit_numerator":"4",
+            "on":"1",
+            "wet":"1",
+            "gate":"0",
+            "autoquit_syncmode":"0",
+            "autoquit_denominator":"4",
+            "autoquit":"1"})
+        controls=ET.SubElement(fx,"ladspacontrols",{"ports":"8"})
+        ET.SubElement(controls,"port00",{"data":"1000"}) #delay (ms)
+        ET.SubElement(controls,"port01",{"data":"0"}) #dry
+        ET.SubElement(controls,"port02",{"data":"0"}) #wet
+        ET.SubElement(controls,"port03",{"data":"1"}) #comb
+        ET.SubElement(controls,"port04",{"data":"1"}) #allpass
+        ET.SubElement(controls,"port05",{"data":"1"}) #bandpass
+        ET.SubElement(controls,"port06",{"data":"1"}) #enhanced stereo
+        ET.SubElement(controls,"port07",{"data":str(r.randint(0,42))}) #type
+        key=ET.SubElement(fx,"key")
+        ET.SubElement(key,"attribute",{"name":"file","value":"tap_reverb"})
+        ET.SubElement(key,"attribute",{"name":"plugin","value":"tap_reverb"})
+    # add the stereo enhancer to the chain.
+    if addStereo:
+        fx=ET.SubElement(fxchain,"effect",{"name":"stereoenhancer",
+            "autoquit_numerator":"4",
+            "on":"1",
+            "wet":"1",
+            "gate":"0",
+            "autoquit_syncmode":"0",
+            "autoquit_denominator":"4",
+            "autoquit":"1"})
+        stereoControls=ET.SubElement(fx,"stereoenhancercontrols",{"width":"0"})
+        con=ET.SubElement(stereoControls,"connection")
+        # Connect the width dial to the same automation LFO as the formant filter.
+        ET.SubElement(con,"width",{"id":"0"})
     return fxchain
 """
 A thing about types.
@@ -370,18 +431,20 @@ cons=['b','c','d','f','g','h','j','k','l','m','n','p','qu','r','s','t','v','w','
 # The list of consonants to be used at the end of a syllable.
 cons2=['b','c','d','f','g','h','k','l','m','n','p','r','s','t','w','y','z','ch','sh','rk','th','ts','ng','nk']
 # Every syllable has 1 vowel and is the definition of a syllable in a basic sense.
-vow=['a','e','i','o','u','oi','ea']
+vow=['a','e','i','o','u']
 # Make a syllable.
 def syl():
     # The result string.
     result=''
+    req=True
     #Does it start with a consonant?
     if r.choice([True,False]):
         result+=r.choice(cons)
+        req=False
     #Then add a vowel
     result+=r.choice(vow)
     #Does it end with a consonant?
-    if r.choice([True,False]):
+    if r.choice([True,False]) or req:
         result+=r.choice(cons2)
     return result
 
@@ -398,15 +461,83 @@ def word(x):
 """
 Drawing waves
 """
+# Necessary imports.
+"""
+A thing about wave forms.
+
+Remember trigonometry? sin(x)=[-1,1]; x in radians (pi notation, if you will)
+Sawtooth: y=x/length(*2-1 if not onlyPositive)
+Square: 1 if x<length*.5, else 0 (or -1)
+Tri: sawtooth, but cut in half.
+OPL sine: just sine, but absolute.
+Smooth: Procedurally generated wave form that goes up/down small steps at random.
+
+"""
 from struct import pack
 from base64 import b64encode
+from math import sin
+from math import pi
+
+# All of these return a byte object.
+def sinewave(length, onlyPositive):
+    result=b''
+    # Iterate over the whole length.
+    for x in range(length):
+        # Trigonometry y'all.
+        # Pack the answer to y=sin(x) in radians, where 0, pi and 2pi are 0, .5pi is 1 and 1.5pi is -1.
+        result+=pack('f',.5+(sin(2*pi/length*x)/2)) if onlyPositive else pack('f',sin(2*pi/length*x))
+        # onlyPositive means the whole thing needs to be shrunk down by half and moved up by half as well.
+    return result
+
+def squarewave(length, onlyPositive):
+    result=b''
+    # Simple square wave, it's either 1 or it's not.
+    for x in range(length):
+        if x<length/2:
+            # It's 1 here.
+            result+=pack('f',1)
+        else:
+            # It's not here. It's 0 if it's called for.
+            result+=pack('f',0) if onlyPositive else pack('f',-1)
+    return result
+
+def sawwave(length, onlyPositive):
+    result=b''
+    # This is literally just a line.
+    for x in range(length):
+        # y=x, but it needs to slope depending on the length so it maxes out at 1.
+        result+=pack('f',x/length) if onlyPositive else pack('f',((x/length)*2)-1)
+    return result
+
+def smoothwave(length, onlyPositive):
+    sample=r.random()
+    result=pack('f',sample)
+    # Since the first sample's already added, the length is reduced by 1 (though doesn't really matter).
+    for x in range(length-1):
+        # Add or subtract a random value no further than .1 away. Meaning shrink down to a fifth and balance it.
+        sample+=((r.random())/5)-.1
+        if onlyPositive:
+            sample=abs(sample)
+        # Pack the new sample.
+        result+=pack('f', sample)
+    return result
+
+
+def noisewave(length, onlyPositive):
+    result=b''
+    for x in range(length):
+        # Limit it to .5F to avoid screeches.
+        result+=pack("f", r.random() / 2) if onlyPositive else pack("f", r.random() - .5)
+    return result
+
 # Sample shaper
 def shapeSample(length,onlyPositive=False):
-    # Make a byte of floats to add other bytes to.
-    byte=b''
-    # A sample length of 4 (bitinvader's minimum) only needs 4 floats, but freeboy has 32 and most others have 200.
-    for x in range(length):
-        # The range is between 0f to 1f for freeboy (and other only positive graphs) or between -1f and 1f otherwise.
-        byte+=pack("f",r.random()) if onlyPositive else pack("f",r.random()*2-1)
+    # A sample length of 4 (bitinvader's minimum) only needs 4 floats, but freeboy has 32 and most others have >=200.
+    # The range is between 0f to 1f for freeboy (and other only positive graphs) or between -1f and 1f otherwise.
+    # Math time. Split up, team. Generate a byte of floats.
+    '''byte=r.choice([sinewave(length,onlyPositive),squarewave(length,onlyPositive),
+                   sawwave(length,onlyPositive),smoothwave(length,onlyPositive),
+                   noisewave(length,onlyPositive)])'''
+    byte=smoothwave(length,onlyPositive)
     # do a magic.
     return str(b64encode(byte))[2:-1]
