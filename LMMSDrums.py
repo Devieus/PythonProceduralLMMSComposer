@@ -18,7 +18,7 @@ These are the instruments available:
     vibedstrings(=Vibed)*
     * not yet implemented
     """
-def createInstrument(instrumentName,shapeSample):
+def createInstrument(instrumentName,shapeSample,basenote):
     if instrumentName=="nes": return{"vol":"1", #master volume.
     "vibr": "0", #master vibrato (depth only).
     "on1":"0", #enable channel 1, a square wave channel.
@@ -314,3 +314,34 @@ def createInstrument(instrumentName,shapeSample):
         "chorusNum": "3",
         "chorusDepth": "8",
         "chorusSpeed": "0.3"}
+    if instrumentName=="papu":
+        return {"ch1so1":"0", # Channel 1 send output. 1 is left, 2 is right.
+            "ch1so2":"0", # Channel 1 is irrelevant.
+            "ch2so1":"0", # Channel 2 is irrelevant.
+            "ch2so2":"0",
+            "ch3so1":"0", # Channel 3 is irrelevant.
+            "ch3so2":"0",
+            "ch4so1":"1", # Channel 4 is noise. Channel 4 is best channel.
+            "ch4so2":"1",
+            "so1vol":"7",
+            "so2vol":"7", # Finer tune of output. Only works if both are the same value.
+            "Treble":"100", # Crude filters. They sort of do something, but 100/-1 is decent enough.
+            "Bass":"1",
+            "ch4vol":"15", # Channel 4 volume.
+            "ch4ssl":r.randint(1,2), # Volume sweep duration. This makes the drums more drummy.
+            "srw":["0","1"][basenote>45], # Shift register width. 0=15 (better for higher pitches), 1=7 (better for lower).
+            "ch4vsd":"0", # Volume sweep direction.
+            "ch1vol":"0", # Don't worry about any of these.
+            "ch1ssl":"0",
+            "ch1wpd":"0",
+            "srs":"0",
+            "st":"0",
+            "sd":"0",
+            "ch1vsd":"0",
+            "ch2vol":"0",
+            "ch2ssl":"0",
+            "ch2wpd":"0",
+            "ch2vsd":"0",
+            "ch3vol":"0",
+            "sampleShape":shapeSample(32,onlyPositive=True), # No one cares about any of these, just put a random waveform here.
+            } # Volume sweep direction

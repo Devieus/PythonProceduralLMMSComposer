@@ -89,12 +89,12 @@ def createInstrument(instrumentName,shapeSample,bird=0):
     "stphdetun2":"0",
     }
     if instrumentName=="sfxr":return {"version":"1", #does nothing.
-    "waveForm":["0","3"][drum], #waveform, square 0, saw 1, sine 2, noise 3. All other values are normals.
-    "att":["0","0.7"][drum], #attack.
-    "hold":str([str(r.choice(range(10))/10),"0"][drum]), #hold (time until sustain).
+    "waveForm":"0", #waveform, square 0, saw 1, sine 2, noise 3. All other values are normals.
+    "att":"0", #attack.
+    "hold":str([str(r.choice(range(10))/10)]), #hold (time until sustain).
     "sus":"0", #punch (very short).
-    "dec":["0.4","0.5"][drum], #decay (sustain time).
-    "startFreq":["0.352",str(r.choice(range(600))/1000+.2)][drum], #0.352 is natural, use a range for drums.
+    "dec":["0.4"], #decay (sustain time).
+    "startFreq":"0.352", #0.352 is natural, use a range for drums.
     "minFreq":"0", #slide cap, but only downards.
     "slide":"0", #slide amount [-1,1], magnitude scales both speed and depth. Loses effectiveness beyond .25.
     "dSlide":"0", #delta slide, or delayed slide. Kicks in after slide finishes.
@@ -307,6 +307,40 @@ def createInstrument(instrumentName,shapeSample,bird=0):
     "chorusNum":"3",
     "chorusDepth":"8",
     "chorusSpeed":"0.3"}
+    if instrumentName=="papu":
+        # For no reason in particular, I want only one channel to output at a time.
+        channel=r.randint(0,2)
+        # Would you like some ADSR? Doesn't affect channel 3.
+        attack=r.randint(0,1)
+        return {"ch1so1":["1","0","0"][channel], # Channel 1 send output. 1 is left, 2 is right.
+            "ch1so2":["1","0","0"][channel], # Channel 1 is the advanced square wave.
+            "ch2so1":["0","1","0"][channel], # Channel 2 is the basice square wave.
+            "ch2so2":["0","1","0"][channel],
+            "ch3so1":["0","0","1"][channel], # Channel 3 is the sample wave.
+            "ch3so2":["0","0","1"][channel],
+            "ch4so1":"0", # Channel 4 is noise. Will have drum applications.
+            "ch4so2":"0",
+            "so1vol":"7",
+            "so2vol":"7", # Finer tune of output. Only works if both are the same value.
+            "Treble":"100", # Crude filters. They sort of do something, but 100/-1 is decent enough.
+            "Bass":"-1",
+            "ch1vol":["15",str(r.randint(0,6))][attack], # Volume of channel 1.
+            "ch1ssl":["0",str(r.randint(2,7))][attack], # Sweep step length. Used in combination with VSwDir. 0 turns volume sweep off.
+            "ch1wpd":str(r.randint(0,3)), # Wave pattern duty. 0 through 3 equals 12.5%, 25%, 50% and 75%.
+            "srs":"0", # Sweep RTShift. Amount of sweep. 0 is no sweep, 1 few notes, 2 is more notes, etc. to 7.
+            "st":"0", # Sweep time. Duration of sweep. 0 is off (stop), 1 through 7 increasingly longer.
+            "sd":"0", # Sweep direction.
+            "ch1vsd":["0","1"][attack], # Volume sweep direction, both have 0 as down, 1 as up.
+            "ch2vol":["15",str(r.randint(0,6))][attack], # Volume of channel 2.
+            "ch2ssl":str(r.randint(0,7)), # Volume sweep length for channel 2.
+            "ch2wpd":str(r.randint(0,3)), # Wave pattern duty, same as 1. Note that 25% and 75% don't cancel eachother out.
+            "ch2vsd":["0","1"][attack], # Volume sweep direction. 1 only works if chxvol!=15
+            "ch3vol":"3", # Channel 3 volume.
+            "sampleShape":shapeSample(32,onlyPositive=True), # Channel 3 waveform, positive values only.
+            "ch4vol":"15", # Channel 4 volume.
+            "ch4ssl":"2", # Volume sweep duration.
+            "srw":"0", # Shift register width. 0=15 (better for higher pitches), 1=7 (better for lower).
+            "ch4vsd":"0",} # Volume sweep direction
     # Might add others later, depending.
 
 def makeBird(instrumentName,bird=1):
@@ -350,8 +384,7 @@ def makeBird(instrumentName,bird=1):
     "o3vol":"33","o3pan":"0","o3crs":"0","o3spo":"0","o3sub":"0","o3wav1":"5","o3wav2":"4","o3synr":"0","o3syn":"0",
     "o23mo":"0",
     "l1wav":"0","l1att":"0","l1att_syncmode":"0","l1att_numerator":"4","l1att_denominator":"4",
-    "l1rat":"300","l1rat_syncmode":"0","l1rat_numerator":"4","l1rat_denominator":"4",
-    "l1phs":"0",
+    "l1rat":"300","l1rat_syncmode":"0","l1rat_numerator":"4","l1rat_denominator":"4","l1phs":"0",
     "l2wav":"0","l2att":"0","l2att_syncmode":"0","l2att_numerator":"4","l2att_denominator":"4",
     "l2rat":"1","l2rat_syncmode":"0","l2rat_numerator":"4","l2rat_denominator":"4","l2phs":"0",
     "e1pre":"0","e1pre_syncmode":"0","e1pre_numerator":"4","e1pre_denominator":"4",
@@ -377,4 +410,71 @@ def makeBird(instrumentName,bird=1):
     "p2e1":"0","p2e2":"0","p2l1":"0","p2l2":"0",
     "p3e1":"0","p3e2":"0","p3l1":"0","p3l2":"0",
     "w1e1":"0","w1e2":"0","w1l1":"0","w1l2":"0",
-    "s3e1":"0","s3e2":"0","s3l1":"0","s3l2":"0"}][bird]
+    "s3e1":"0","s3e2":"0","s3l1":"0","s3l2":"0"},
+    {"o1vol":"33","o1pan":"0","o1crs":"0","o1ftl":"0","o1ftr":"0","o1spo":"0","o1pw":str(r.randint(25,50)),"o1ssr":"0","o1ssf":"1",
+    "o2vol":"33","o2pan":"0","o2crs":"0","o2ftl":"0","o2ftr":"0","o2spo":"0","o2wav":"8","o2synr":"1","o2syn":"1",
+    "o3vol":"33","o3pan":"0","o3crs":"0","o3spo":"0","o3sub":"0","o3wav1":"6","o3wav2":"4","o3synr":"1","o3syn":"1",
+    "o23mo":"0",
+    "l1wav":"0","l1att":"0","l1att_syncmode":"0","l1att_numerator":"4","l1att_denominator":"4",
+    "l1rat":"300","l1rat_syncmode":"0","l1rat_numerator":"4","l1rat_denominator":"4","l1phs":"0",
+    "l2wav":"0","l2att":"0","l2att_syncmode":"0","l2att_numerator":"4","l2att_denominator":"4",
+    "l2rat":"1","l2rat_syncmode":"0","l2rat_numerator":"4","l2rat_denominator":"4","l2phs":"0",
+    "e1pre":"0","e1pre_syncmode":"0","e1pre_numerator":"4","e1pre_denominator":"4",
+    "e1att":"0","e1att_syncmode":"0","e1att_denominator":"4","e1att_numerator":"4",
+    "e1hol":"0","e1hol_syncmode":"0","e1hol_numerator":"4","e1hol_denominator":"4",
+    "e1dec":"2800","e1dec_syncmode":"0","e1dec_numerator":"4","e1dec_denominator":"4","e1sus":"0",
+    "e1rel":"0","e1rel_syncmode":"0","e1rel_numerator":"4","e1rel_denominator":"4",
+    "e1slo":"0",
+    "e2pre":"0","e2pre_syncmode":"0","e2pre_numerator":"4","e2pre_denominator":"4",
+    "e2att":"144","e2att_syncmode":"0","e2att_numerator":"4","e2att_denominator":"4",
+    "e2hol":"0","e2hol_syncmode":"0","e2hol_numerator":"4","e2hol_denominator":"4",
+    "e2dec":"620","e2dec_syncmode":"0","e2dec_numerator":"4","e2dec_denominator":"4",
+    "e2sus":"0",
+    "e2rel":"0","e2rel_syncmode":"0","e2rel_numerator":"4","e2rel_denominator":"4",
+    "e2slo":"0",
+    "v1e1":"1","v1e2":"0","v1l1":"0","v1l2":"0",
+    "v2e1":"1","v2e2":"0","v2l1":"0","v2l2":"0",
+    "v3e1":"1","v3e2":"0","v3l1":"0","v3l2":"0",
+    "f1e1":"0.150","f1e2":"0.150","f1l1":"0","f1l2":"0",
+    "f2e1":"0.150","f2e2":"0.150","f2l1":"0","f2l2":"0",
+    "f3e1":"0.150","f3e2":"0.150","f3l1":"0","f3l2":"0",
+    "p1e1":"0","p1e2":"0","p1l1":"0","p1l2":"0",
+    "p2e1":"0","p2e2":"0","p2l1":"0","p2l2":"0",
+    "p3e1":"0","p3e2":"0","p3l1":"0","p3l2":"0",
+    "w1e1":"0","w1e2":"0","w1l1":"0","w1l2":"0",
+    "s3e1":"0","s3e2":"0","s3l1":"0","s3l2":"0"},
+    {"o1vol":"0","o1pan":"0","o1crs":"0","o1ftl":"0","o1ftr":"0","o1spo":"0","o1pw":str(r.randint(25,50)),"o1ssr":"0","o1ssf":"0",
+     "o2vol":"50","o2pan":"0","o2crs":"0","o2ftl":"0","o2ftr":"0","o2spo":"0","o2wav":"1","o2synr":"0","o2syn":"0",
+     "o3vol":"50","o3pan":"0","o3crs":"0","o3spo":"0","o3sub":"0","o3wav1":"2","o3wav2":"1","o3synr":"0","o3syn":"0",
+     "o23mo":"0",
+     "l1wav":"3","l1att":"0","l1att_syncmode":"0","l1att_numerator":"4","l1att_denominator":"4",
+     "l1rat":"150","l1rat_syncmode":"0","l1rat_numerator":"4","l1rat_denominator":"4",
+     "l1phs":"0",
+     "l2wav":"1","l2att":"0","l2att_syncmode":"0","l2att_numerator":"4","l2att_denominator":"4",
+     "l2rat":"1","l2rat_syncmode":"0","l2rat_numerator":"4","l2rat_denominator":"4","l2phs":"0",
+     "e1pre":"0","e1pre_syncmode":"0","e1pre_numerator":"4","e1pre_denominator":"4",
+     "e1att":"200","e1att_syncmode":"0","e1att_denominator":"4","e1att_numerator":"4",
+     "e1hol":"0","e1hol_syncmode":"0","e1hol_numerator":"4","e1hol_denominator":"4",
+     "e1dec":"500","e1dec_syncmode":"0","e1dec_numerator":"4","e1dec_denominator":"4",
+     "e1sus":"0",
+     "e1rel":"0","e1rel_syncmode":"0","e1rel_numerator":"4","e1rel_denominator":"4",
+     "e1slo":"0",
+     "e2pre":"0","e2pre_syncmode":"0","e2pre_numerator":"4","e2pre_denominator":"4",
+     "e2att":"144","e2att_syncmode":"0","e2att_numerator":"4","e2att_denominator":"4",
+     "e2hol":"0","e2hol_syncmode":"0","e2hol_numerator":"4","e2hol_denominator":"4",
+     "e2dec":"620","e2dec_syncmode":"0","e2dec_numerator":"4","e2dec_denominator":"4",
+     "e2sus":"1",
+     "e2rel":"0","e2rel_syncmode":"0","e2rel_numerator":"4","e2rel_denominator":"4",
+     "e2slo":"0",
+     "v1e1":"1","v1e2":"0","v1l1":"0","v1l2":"0",
+     "v2e1":"1","v2e2":"1","v2l1":"0","v2l2":"0",
+     "v3e1":"1","v3e2":"0","v3l1":"0","v3l2":"0",
+     "f1e1":"0","f1e2":"0","f1l1":"0.150","f1l2":"0",
+     "f2e1":"0","f2e2":"0","f2l1":"0.150","f2l2":"0",
+     "f3e1":"0","f3e2":"0","f3l1":"0.150","f3l2":"0",
+     "p1e1":"0","p1e2":"0","p1l1":"0","p1l2":"0",
+     "p2e1":"0","p2e2":"0","p2l1":"0","p2l2":"0",
+     "p3e1":"0","p3e2":"0","p3l1":"0","p3l2":"0",
+     "w1e1":"0","w1e2":"0","w1l1":"0","w1l2":"0",
+     "s3e1":"0","s3e2":"0","s3l1":"0","s3l2":"0"}
+    ][bird]

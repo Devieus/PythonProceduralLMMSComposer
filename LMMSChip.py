@@ -197,28 +197,43 @@ def createInstrument(instrumentName,shapeSample):
     "b2_mult":"8",
     "b2_ltune":"0",
     "b2_rtune":"0",
-    "a1_wave":shapeSample(250), # 200 byte long shape of the wave for A1
-    "a2_wave":shapeSample(250),
-    "b1_wave":shapeSample(250),
-    "b2_wave":shapeSample(250)}
-    # Monstro. It's large and in charge (no joke, definitely the most powerful synth in all of LMMS).
-    if instrumentName == "monstro": return [{
-        "o1vol": "0", "o1pan": "0", "o1crs": "0", "o1ftl": "0", "o1ftr": "0", "o1spo": "0", "o1pw": "50", "o1ssr": "0",
+    "a1_wave":shapeSample(220), # 220 byte long shape of the wave for A1
+    "a2_wave":shapeSample(220),
+    "b1_wave":shapeSample(220),
+    "b2_wave":shapeSample(220)}
+    # Monstro. It's large and in charge (no joke, definitely the most powerful synth in all of LMMS, discounting SynSubAddFX).
+    if instrumentName == "monstro":
+        # Monstro will do things quite different. For starters, there are 3 different types of oscillators.
+        # The total volume of these should be 33% (they can go to 200% each of them, but anything above 33 will clip easily (even 33 peaks very quick))
+        # Take the max of 33.
+        a=33
+        # Take a number between 0 (off) and 33 (the whole thing)
+        b=a-r.randint(0,a)
+        # Subtract it from the total
+        a-=b
+        # Do it again, but now the limits are lowered.
+        c=a-r.randint(0,a)
+        # Note that a could've been 0, at which point c is too. The distribution heavily favors b this way (statistically as loud as a and c combined).
+        a-=c
+        # Tie them to the envelope the same amount.
+        env=str(r.randint(-1000,1000)/1000)
+        return {
+        "o1vol": str(a), "o1pan": "0", "o1crs": "0", "o1ftl": "0", "o1ftr": "0", "o1spo": "0", "o1pw": "50", "o1ssr": "0",
         "o1ssf": "0",
-        "o2vol": "33", "o2pan": "0", "o2crs": "0", "o2ftl": "0", "o2ftr": "0", "o2spo": "0", "o2wav": "4",
+        "o2vol": str(b), "o2pan": "0", "o2crs": "0", "o2ftl": "0", "o2ftr": "0", "o2spo": "0", "o2wav": "4",
         "o2synr": "0", "o2syn": "0",
-        "o3vol": "0", "o3pan": "0", "o3crs": "0", "o3spo": "0", "o3sub": "0", "o3wav1": "0", "o3wav2": "1",
+        "o3vol": str(c), "o3pan": "0", "o3crs": "0", "o3spo": "0", "o3sub": "0", "o3wav1": "0", "o3wav2": "1",
         "o3synr": "0", "o3syn": "0",
         "o23mo": "0",
-        "l1wav": "0", "l1att": "0", "l1att_syncmode": "0", "l1att_numerator": "4", "l1att_denominator": "4",
-        "l1rat": "300", "l1rat_syncmode": "0", "l1rat_numerator": "4", "l1rat_denominator": "4",
+        "l1wav": "0", "l1att": str(r.randint(700,2000)), "l1att_syncmode": "0", "l1att_numerator": "4", "l1att_denominator": "4",
+        "l1rat": str(r.randint(50,150)), "l1rat_syncmode": "0", "l1rat_numerator": "4", "l1rat_denominator": "4",
         "l1phs": "0",
         "l2wav": "0", "l2att": "0", "l2att_syncmode": "0", "l2att_numerator": "4", "l2att_denominator": "4",
         "l2rat": "1", "l2rat_syncmode": "0", "l2rat_numerator": "4", "l2rat_denominator": "4", "l2phs": "0",
         "e1pre": "0", "e1pre_syncmode": "0", "e1pre_numerator": "4", "e1pre_denominator": "4",
         "e1att": "0", "e1att_syncmode": "0", "e1att_denominator": "4", "e1att_numerator": "4",
         "e1hol": "0", "e1hol_syncmode": "0", "e1hol_numerator": "4", "e1hol_denominator": "4",
-        "e1dec": "250", "e1dec_syncmode": "0", "e1dec_numerator": "4", "e1dec_denominator": "4", "e1sus": "0",
+        "e1dec": "250", "e1dec_syncmode": "0", "e1dec_numerator": "4", "e1dec_denominator": "4", "e1sus": str(r.randint(0,1000)/1000),
         "e1rel": "0", "e1rel_syncmode": "0", "e1rel_numerator": "4", "e1rel_denominator": "4",
         "e1slo": "0",
         "e2pre": "0", "e2pre_syncmode": "0", "e2pre_numerator": "4", "e2pre_denominator": "4",
@@ -228,50 +243,48 @@ def createInstrument(instrumentName,shapeSample):
         "e2sus": "1",
         "e2rel": "0", "e2rel_syncmode": "0", "e2rel_numerator": "4", "e2rel_denominator": "4",
         "e2slo": "0",
-        "v1e1": "0", "v1e2": "0", "v1l1": "0", "v1l2": "0",  # Volume
-        "v2e1": "1", "v2e2": "0", "v2l1": "0", "v2l2": "0",
-        "v3e1": "0", "v3e2": "0", "v3l1": "0", "v3l2": "0",
-        "f1e1": "0", "f1e2": "0", "f1l1": "0", "f1l2": "0",  # Pitch (frequency)
-        "f2e1": "0", "f2e2": "0", "f2l1": "1", "f2l2": "0",
-        "f3e1": "0", "f3e2": "0", "f3l1": "0", "f3l2": "0",
+        "v1e1": env, "v1e2": "0", "v1l1": "0", "v1l2": "0",  # Volume
+        "v2e1": env, "v2e2": "0", "v2l1": "0", "v2l2": "0",
+        "v3e1": env, "v3e2": "0", "v3l1": "0", "v3l2": "0",
+        "f1e1": "0", "f1e2": "0", "f1l1": "0.07", "f1l2": "0",  # Pitch (frequency)
+        "f2e1": "0", "f2e2": "0", "f2l1": "0.07", "f2l2": "0",
+        "f3e1": "0", "f3e2": "0", "f3l1": "0.07", "f3l2": "0",
         "p1e1": "0", "p1e2": "0", "p1l1": "0", "p1l2": "0",  # Phase
         "p2e1": "0", "p2e2": "0", "p2l1": "0", "p2l2": "0",
         "p3e1": "0", "p3e2": "0", "p3l1": "0", "p3l2": "0",
         "w1e1": "0", "w1e2": "0", "w1l1": "0", "w1l2": "0",  # Pulse width
-        "s3e1": "0", "s3e2": "0", "s3l1": "0", "s3l2": "0"},  # Sub mix
-        {"o1vol": "0", "o1pan": "0", "o1crs": "0", "o1ftl": "0", "o1ftr": "0", "o1spo": "0", "o1pw": "50", "o1ssr": "0",
-         "o1ssf": "0",
-         "o2vol": "0", "o2pan": "0", "o2crs": "0", "o2ftl": "0", "o2ftr": "0", "o2spo": "0", "o2wav": "4",
-         "o2synr": "0", "o2syn": "0",
-         "o3vol": "33", "o3pan": "0", "o3crs": "0", "o3spo": "0", "o3sub": "0", "o3wav1": "5", "o3wav2": "4",
-         "o3synr": "0", "o3syn": "0",
-         "o23mo": "0",
-         "l1wav": "0", "l1att": "0", "l1att_syncmode": "0", "l1att_numerator": "4", "l1att_denominator": "4",
-         "l1rat": "300", "l1rat_syncmode": "0", "l1rat_numerator": "4", "l1rat_denominator": "4",
-         "l1phs": "0",
-         "l2wav": "0", "l2att": "0", "l2att_syncmode": "0", "l2att_numerator": "4", "l2att_denominator": "4",
-         "l2rat": "1", "l2rat_syncmode": "0", "l2rat_numerator": "4", "l2rat_denominator": "4", "l2phs": "0",
-         "e1pre": "0", "e1pre_syncmode": "0", "e1pre_numerator": "4", "e1pre_denominator": "4",
-         "e1att": "0", "e1att_syncmode": "0", "e1att_denominator": "4", "e1att_numerator": "4",
-         "e1hol": "0", "e1hol_syncmode": "0", "e1hol_numerator": "4", "e1hol_denominator": "4",
-         "e1dec": "1000", "e1dec_syncmode": "0", "e1dec_numerator": "4", "e1dec_denominator": "4", "e1sus": "0",
-         "e1rel": "0", "e1rel_syncmode": "0", "e1rel_numerator": "4", "e1rel_denominator": "4",
-         "e1slo": "0",
-         "e2pre": "0", "e2pre_syncmode": "0", "e2pre_numerator": "4", "e2pre_denominator": "4",
-         "e2att": "0", "e2att_syncmode": "0", "e2att_numerator": "4", "e2att_denominator": "4",
-         "e2hol": "0", "e2hol_syncmode": "0", "e2hol_numerator": "4", "e2hol_denominator": "4",
-         "e2dec": "0", "e2dec_syncmode": "0", "e2dec_numerator": "4", "e2dec_denominator": "4",
-         "e2sus": "1",
-         "e2rel": "0", "e2rel_syncmode": "0", "e2rel_numerator": "4", "e2rel_denominator": "4",
-         "e2slo": "0",
-         "v1e1": "0", "v1e2": "0", "v1l1": "0", "v1l2": "0",
-         "v2e1": "1", "v2e2": "0", "v2l1": "2", "v2l2": "0",
-         "v3e1": "1", "v3e2": "0", "v3l1": "0", "v3l2": "0",
-         "f1e1": "0", "f1e2": "0", "f1l1": "0", "f1l2": "0",
-         "f2e1": "0", "f2e2": "0", "f2l1": "1", "f2l2": "0",
-         "f3e1": "0.150", "f3e2": "0", "f3l1": "0", "f3l2": "0",
-         "p1e1": "0", "p1e2": "0", "p1l1": "0", "p1l2": "0",
-         "p2e1": "0", "p2e2": "0", "p2l1": "0", "p2l2": "0",
-         "p3e1": "0", "p3e2": "0", "p3l1": "0", "p3l2": "0",
-         "w1e1": "0", "w1e2": "0", "w1l1": "0", "w1l2": "0",
-         "s3e1": "0", "s3e2": "0", "s3l1": "0", "s3l2": "0"}][r.randint(0,1)]
+        "s3e1": "0", "s3e2": "0", "s3l1": "0", "s3l2": "0"}  # Sub mix
+    if instrumentName=="papu":
+        # For no reason in particular, I want only one channel to output at a time.
+        channel=r.randint(0,2)
+        # Would you like some ADSR? Doesn't affect channel 3.
+        attack=r.randint(0,1)
+        return {"ch1so1":["1","0","0"][channel], # Channel 1 send output. 1 is left, 2 is right.
+            "ch1so2":["1","0","0"][channel], # Channel 1 is the advanced square wave.
+            "ch2so1":["0","1","0"][channel], # Channel 2 is the basice square wave.
+            "ch2so2":["0","1","0"][channel],
+            "ch3so1":["0","0","1"][channel], # Channel 3 is the sample wave.
+            "ch3so2":["0","0","1"][channel],
+            "ch4so1":"0", # Channel 4 is noise. Will have drum applications.
+            "ch4so2":"0",
+            "so1vol":"7",
+            "so2vol":"7", # Finer tune of output. Only works if both are the same value.
+            "Treble":"100", # Crude filters. They sort of do something, but 100/-1 is decent enough.
+            "Bass":"-1",
+            "ch1vol":["15",str(r.randint(0,6))][attack], # Volume of channel 1.
+            "ch1ssl":["0",str(r.randint(2,7))][attack], # Sweep step length. Used in combination with VSwDir. 0 turns volume sweep off.
+            "ch1wpd":str(r.randint(0,3)), # Wave pattern duty. 0 through 3 equals 12.5%, 25%, 50% and 75%.
+            "srs":"0", # Sweep RTShift. Amount of sweep. 0 is no sweep, 1 few notes, 2 is more notes, etc. to 7.
+            "st":"0", # Sweep time. Duration of sweep. 0 is off (stop), 1 through 7 increasingly longer.
+            "sd":"0", # Sweep direction.
+            "ch1vsd":["0","1"][attack], # Volume sweep direction, both have 0 as down, 1 as up.
+            "ch2vol":["15",str(r.randint(0,6))][attack], # Volume of channel 2.
+            "ch2ssl":str(r.randint(0,7)), # Volume sweep length for channel 2.
+            "ch2wpd":str(r.randint(0,3)), # Wave pattern duty, same as 1. Note that 25% and 75% don't cancel eachother out.
+            "ch2vsd":["0","1"][attack], # Volume sweep direction. 1 only works if chxvol!=15
+            "ch3vol":"3", # Channel 3 volume.
+            "sampleShape":shapeSample(32,onlyPositive=True), # Channel 3 waveform, positive values only.
+            "ch4vol":"15", # Channel 4 volume.
+            "ch4ssl":"2", # Volume sweep duration.
+            "srw":"0", # Shift register width. 0=15 (better for higher pitches), 1=7 (better for lower).
+            "ch4vsd":"0",} # Volume sweep direction
