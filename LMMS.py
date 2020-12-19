@@ -8,7 +8,7 @@ songType=2#r.choice([0,2])
 outroPosition=0
 # This may be interesting later on.
 numerator=4
-"""Humanize?"""
+"""reverb drums"""
 #-------------------------Sections------------------------------
 """
 0-4 bars intro,4 or 8 bars for a section,4 or 8 bars for a chorus,0-4 bars bridge and 0-4 bars outro.
@@ -30,11 +30,11 @@ intro-section-chorus-section(-chorus-section)(-bridge-section)(-chorus-section)-
 
 """
 # Calculate section lengths in bars.
-sectionLengths={"intro":r.randint(0,4),
+sectionLengths={"intro":r.randint(1,3)*2,
     "verse":r.randint(4,8),
     "chorus":r.randint(4,8),
     "bridge":r.randint(4,8),
-    "outro":r.randint(0,4),
+    "outro":r.randint(0,5),
     }
 # A place to store valuables.
 # Notes go here, the key (pitch), relative position (just add bars*192 for absolute) and length.
@@ -54,6 +54,9 @@ if chorusCount>1:structure.extend(["chorus","verse"])
 # by
 if sectionLengths["bridge"]>0:structure.extend(["bridge","verse"])
 # bit
+if songType==2:
+        structure.extend(["chorus","verse"])
+        sectionLengths["outro"]=5
 if chorusCount>2:structure.extend(["chorus","verse"])
 # and finish by adding the outro.
 structure.append("outro")
@@ -175,36 +178,30 @@ for section in songDic:
                                "key":str(LMMSutil.keys[harmDic[section][length]]),"len":"192","pan":"0"})
                 # To make the rhythm,
                 if section=="chorus":
-                    ET.SubElement(rhythmPattern, "note", {"pos":str(length * 192), "vol":str(r.randint(60, 100)), "key":str(LMMSutil.keys[progDic[section][length]]),
-                                   "len":str(chorusBassTemplate[0]),"pan":"0"})
-                    ET.SubElement(rhythmPattern, "note", {"pos":str(length * 192 + chorusBassTemplate[0]),
-                                                        "vol":str(r.randint(60,100)),
-                                                        "key":str(LMMSutil.keys[progDic[section][length]]-12),
-                                                        "len":str(chorusBassTemplate[1]),"pan":"0"})
-                    ET.SubElement(rhythmPattern, "note", {"pos":str(length * 192 + chorusBassTemplate[0] + chorusBassTemplate[1]),
-                                                        "vol":str(r.randint(60,100)),
-                                                        "key":str(LMMSutil.keys[harmDic[section][length]]),
-                                                        "len":str(chorusBassTemplate[2]),"pan":"0"})
-                    ET.SubElement(rhythmPattern, "note", {"pos":str(length * 192 + chorusBassTemplate[0] + chorusBassTemplate[1] + chorusBassTemplate[2]),
-                                                        "vol":str(r.randint(60,100)),
-                                                        "key":str(LMMSutil.keys[progDic[section][length]]),
-                                                        "len":str(chorusBassTemplate[3]),"pan":"0"})
+                    ET.SubElement(rhythmPattern,"note",{"pos":str(length*192),"vol":str(r.randint(60,100)),"key":str(LMMSutil.keys[progDic[section][length]]),
+                    "len":str(chorusBassTemplate[0]),"pan":"0"})
+                    ET.SubElement(rhythmPattern,"note",{"pos":str(length*192+chorusBassTemplate[0]),
+                    "vol":str(r.randint(60,100)),"key":str(LMMSutil.keys[progDic[section][length]]-12),"len":str(chorusBassTemplate[1]),"pan":"0"})
+                    ET.SubElement(rhythmPattern,"note",{"pos":str(length*192+chorusBassTemplate[0]+chorusBassTemplate[1]),
+                    "vol":str(r.randint(60,100)),"key":str(LMMSutil.keys[harmDic[section][length]]),"len":str(chorusBassTemplate[2]),"pan":"0"})
+                    ET.SubElement(rhythmPattern,"note",{"pos":str(length*192+chorusBassTemplate[0]+chorusBassTemplate[1]+chorusBassTemplate[2]),
+                    "vol":str(r.randint(60,100)),"key":str(LMMSutil.keys[progDic[section][length]]),"len":str(chorusBassTemplate[3]),"pan":"0"})
                 else:
-                    ET.SubElement(rhythmPattern, "note", {"pos":str(length * 192), "vol":str(r.randint(60, 100)), "key":str(LMMSutil.keys[progDic[section][length]]),
-                                   "len":str(bassTemplate[0]),"pan":"0"})
-                    ET.SubElement(rhythmPattern, "note", {"pos":str(length * 192 + bassTemplate[0]),
-                                                        "vol":str(r.randint(60,100)),
-                                                        "key":str(LMMSutil.keys[progDic[section][length]]-12),
-                                                        "len":str(bassTemplate[1]),"pan":"0"})
-                    ET.SubElement(rhythmPattern, "note", {"pos":str(length * 192 + bassTemplate[0] + bassTemplate[1]),
-                                                        "vol":str(r.randint(60,100)),
-                                                        "key":str(LMMSutil.keys[harmDic[section][length]]),
-                                                        "len":str(bassTemplate[2]),"pan":"0"})
-                    ET.SubElement(rhythmPattern, "note", {"pos":str(length * 192 + bassTemplate[0] + bassTemplate[1] + bassTemplate[2]),
-                                                        "vol":str(r.randint(60,100)),
-                                                        "key":str(LMMSutil.keys[progDic[section][length]]),
-                                                        "len":str(bassTemplate[3]),"pan":"0"})
-        # At this point, the lead needs representation as well.
+                    ET.SubElement(rhythmPattern,"note",{"pos":str(length*192),"vol":str(r.randint(60,100)),"key":str(LMMSutil.keys[progDic[section][length]]),
+                    "len":str(bassTemplate[0]),"pan":"0"})
+                    ET.SubElement(rhythmPattern,"note",{"pos":str(length*192+bassTemplate[0]),
+                    "vol":str(r.randint(60,100)),
+                    "key":str(LMMSutil.keys[progDic[section][length]]-12),
+                    "len":str(bassTemplate[1]),"pan":"0"})
+                    ET.SubElement(rhythmPattern,"note",{"pos":str(length*192+bassTemplate[0]+bassTemplate[1]),
+                    "vol":str(r.randint(60,100)),
+                    "key":str(LMMSutil.keys[harmDic[section][length]]),
+                    "len":str(bassTemplate[2]),"pan":"0"})
+                    ET.SubElement(rhythmPattern,"note",{"pos":str(length*192+bassTemplate[0]+bassTemplate[1]+bassTemplate[2]),
+                    "vol":str(r.randint(60,100)),
+                    "key":str(LMMSutil.keys[progDic[section][length]]),
+                    "len":str(bassTemplate[3]),"pan":"0"})
+        # At this point,the lead needs representation as well.
         leadPattern=ET.Element("pattern",{"pos":0,"type":"0","muted":"0","name":section,"steps":"16"})
         # However, it is done with full melodic tracks.
         LMMSutil.makeMelody(leadPattern,progDic[section],sectionLengths[section])
@@ -229,76 +226,117 @@ Every track consists of two parts,the instrument track data,and the patterns.
 
 In this part,we only care about the contents of one pattern playing a layered bass. All whole notes.
 """
+# ---------Tracks----------
 # This holds all the music. Type 0 is for instrument.
 # Create a Nescaline track by default,pass instrumentName with this to change it.
 # Adds all the bells and whistles in the process.
-bassTrack=ET.SubElement(trackcontainer, "track", {"type": "0", "muted": "0", "solo": "0", "name":LMMSutil.word(2)})
-LMMSutil.makeInstrument(bassTrack,
-                        instrumentName=r.choice(["bitinvader","nes","papu","sid","tripleoscillator","watsyn"]), basenote="69", type=songType, vol="30")
-bassTrack2=ET.SubElement(trackcontainer, "track", {"type": "0", "muted": "0", "solo": "0", "name":LMMSutil.word(2)})
-LMMSutil.makeInstrument(bassTrack2,
-                        instrumentName=r.choice(["bitinvader","nes","papu","sid","tripleoscillator","watsyn"]), basenote="69", type=songType, vol="30")
-# Now to do the whole thing again,but for the mallet.
-harmonyTrack=ET.SubElement(trackcontainer, "track", {"type": "0", "muted": "0", "solo": "0", "name":LMMSutil.word(2)})
-LMMSutil.makeInstrument(harmonyTrack,
-                        instrumentName=[r.choice(["bitinvader","monstro","nes","papu","sfxr","sid","tripleoscillator","watsyn"]),"malletsstk"][songType%2],
-                        basenote="45", vol="30", type=songType)
-harmonyTrack2=ET.SubElement(trackcontainer, "track", {"type": "0", "muted": "0", "solo": "0", "name":LMMSutil.word(2)})
-LMMSutil.makeInstrument(harmonyTrack2,
-                        instrumentName=[r.choice(["bitinvader","monstro","nes","papu","sfxr","sid","tripleoscillator","watsyn"]),"malletsstk"][songType%2],
-                        basenote="45", vol="30", type=songType, env=1)
-# Now for the sting. Only once per bar,max.
-leadTrack=ET.SubElement(trackcontainer, "track", {"type": "0", "muted": "0", "solo": "0", "name":LMMSutil.word(2)})
+bassTrack=ET.SubElement(trackcontainer,"track",{"type":"0","muted":"0","solo":"0","name":LMMSutil.word(2)})
+LMMSutil.makeInstrument(bassTrack,instrumentName=r.choice(["bitinvader","nes","papu","sid","tripleoscillator",
+                                                           "watsyn"]),basenote="69",type=songType,vol="30")
+bassTrack2=ET.SubElement(trackcontainer,"track",{"type":"0","muted":"0","solo":"0","name":LMMSutil.word(2)})
+LMMSutil.makeInstrument(bassTrack2,instrumentName=r.choice(["bitinvader","nes","papu","sid","tripleoscillator",
+                                                            "watsyn"]),basenote="69",type=songType,vol="30")
+bassTrackBridge=ET.SubElement(trackcontainer,"track",{"type":"0","muted":"0","solo":"0","name":LMMSutil.word(2)})
+LMMSutil.makeInstrument(bassTrackBridge,instrumentName=r.choice(["bitinvader","nes","papu","sid","tripleoscillator",
+                                                            "watsyn"]),basenote="69",type=songType,vol="30")
+# Now to do the whole thing again, but for the harmony.
+harmonyTrack=ET.SubElement(trackcontainer,"track",{"type":"0","muted":"0","solo":"0","name":LMMSutil.word(2)})
+LMMSutil.makeInstrument(harmonyTrack,instrumentName=[r.choice(["bitinvader","monstro","nes","papu","sfxr","sid",
+      "tripleoscillator","watsyn"]),"malletsstk"][songType%2],basenote="45",vol="30",type=songType)
+harmonyTrack2=ET.SubElement(trackcontainer,"track",{"type":"0","muted":"0","solo":"0","name":LMMSutil.word(2)})
+LMMSutil.makeInstrument(harmonyTrack2,instrumentName=[r.choice(["bitinvader","monstro","nes","papu","sfxr","sid",
+      "tripleoscillator","watsyn"]),"malletsstk"][songType%2],basenote="45",vol="30",type=songType,env=1)
+harmonyTrackBridge=ET.SubElement(trackcontainer,"track",{"type":"0","muted":"0","solo":"0","name":LMMSutil.word(2)})
+LMMSutil.makeInstrument(harmonyTrackBridge,instrumentName=[r.choice(["bitinvader","monstro","nes","papu","sfxr","sid",
+      "tripleoscillator","watsyn"]),"malletsstk"][songType%2],basenote="45",vol="30",type=songType,env=1)
+# Now for the sting. Only once per bar, max.
+leadTrack=ET.SubElement(trackcontainer,"track",{"type":"0","muted":"0","solo":"0","name":LMMSutil.word(2)})
 LMMSutil.makeInstrument(leadTrack,
-                        instrumentName=[r.choice(["bitinvader","monstro","nes","papu","sfxr","sid","tripleoscillator","watsyn"]),"sf2player"][songType%2],
-                        basenote="45", type=songType)
-callTrack=ET.SubElement(trackcontainer, "track", {"type": "0", "muted": "0", "solo": "0", "name":LMMSutil.word(2)})
+instrumentName=[r.choice(["bitinvader","monstro","nes","papu","sfxr","sid","tripleoscillator","watsyn"]),"sf2player"][songType%2],
+basenote="45",type=songType)
+callTrack=ET.SubElement(trackcontainer,"track",{"type":"0","muted":"0","solo":"0","name":LMMSutil.word(2)})
 LMMSutil.makeInstrument(callTrack,
-                        instrumentName=[r.choice(["bitinvader","nes","papu","sfxr","sid","tripleoscillator","watsyn"]),"sf2player"][songType%2],
-                        basenote="45", type=songType)
+instrumentName=[r.choice(["bitinvader","nes","papu","sfxr","sid","tripleoscillator","watsyn"]),"sf2player"][songType%2],
+basenote="45",type=songType)
 # Call/response track that harmonizes during the verse.
 responseTrack=ET.SubElement(trackcontainer,"track",{"type":"0","muted":"0","solo":"0","name":LMMSutil.word(2)})
-LMMSutil.makeInstrument(responseTrack,
-                        instrumentName=[r.choice(["bitinvader","nes","papu","sfxr","sid","tripleoscillator","watsyn"]),"sf2player"][songType%2],
-                        basenote="57", type=songType)
+LMMSutil.makeInstrument(responseTrack,instrumentName=[r.choice(["bitinvader","nes","papu","sfxr","sid","tripleoscillator",
+                                                        "watsyn"]),"sf2player"][songType%2],basenote="57", type=songType)
 """statelist=[]    # Change state only once per bar.
     statelist.append(LMMSutil.state)
     LMMSutil.state=r.choice(LMMSutil.statesDic[LMMSutil.state]["next"])"""# States don't do anything at the moment.
-
+# ---------Placement-------
 position=0
 # Place the patterns according to the structure.
 for section in structure:
     # If a section has length 0 it gets skipped.
     if sectionLengths[section]>0:
-        if section == "chorus":
-            # Whole thing is essentially two bass notes layered,starting with the one from the list.
+        if section=="intro":
+            # No bass in the intro (or drums, but that'll be later).
+            callTrack.append((deepcopy(songDic[section][3])))
+            callTrack[-1].attrib["pos"] = str(position + 192 * (sectionLengths[section] % 2))
+            # Any other section hi-jacks half the melody into the response track with its own melody track.
+            responseTrack.append((deepcopy(songDic[section][4])))
+            responseTrack[-1].attrib["pos"] = str(position + 192 * (sectionLengths[section] % 2))
+        elif section == "chorus":
+            # During the chorus, the leads play simultaneously.
             bassTrack.append((deepcopy(songDic[section][0])))
             bassTrack[-1].attrib["pos"]=str(position)
-            # And this melody
+            # And this harmony
             harmonyTrack.append((deepcopy(songDic[section][1])))
             harmonyTrack[-1].attrib["pos"]=str(position)
-            # And this flute, but only if the section calls for it.
+            # And this melody, but only if the section calls for it.
             if sectionLengths[section]>3:
                 leadTrack.append((deepcopy(songDic[section][2])))
-                leadTrack[-1].attrib["pos"]=str(position + 192 * (sectionLengths[section] % 2))
+                leadTrack[-1].attrib["pos"]=str(position+192*(sectionLengths[section]%2))
                 # During the verse, the response track harmonizes with the lead.
                 responseTrack.append((deepcopy(songDic[section][2])))
-                responseTrack[-1].attrib["pos"] = str(position+192*(sectionLengths[section]%2))
+                responseTrack[-1].attrib["pos"]=str(position+192*(sectionLengths[section]%2))
+        elif section=="bridge":
+            # During the chorus, the leads play simultaneously.
+            bassTrackBridge.append((deepcopy(songDic[section][0])))
+            bassTrackBridge[-1].attrib["pos"]=str(position)
+            # And this harmony
+            harmonyTrackBridge.append((deepcopy(songDic[section][1])))
+            harmonyTrackBridge[-1].attrib["pos"]=str(position)
+            # And this melody, but only if the section calls for it.
+            if sectionLengths[section]>3:
+                leadTrack.append((deepcopy(songDic[section][2])))
+                leadTrack[-1].attrib["pos"]=str(position+192*(sectionLengths[section]%2))
+                # During the verse, the response track harmonizes with the lead.
+                responseTrack.append((deepcopy(songDic[section][2])))
+                responseTrack[-1].attrib["pos"]=str(position+192*(sectionLengths[section]%2))
+        elif section=="outro":
+            # During the outro, some sections don't get played. Only the bass
+            outro=ET.SubElement(bassTrack2,"pattern",{"pos":str(position),"steps":"16","type":"1","muted":"0","name":"outro"})
+            """ET.SubElement(outro,"note",{"pos":"48","len":"192","key":str(LMMSutil.keys[2]+4),"pan":"0","vol":str(r.randint(80,100))})
+            """
+            LMMSutil.makeMelody(outro,progDic[section],sectionLengths[section]-1,False)
+            ET.SubElement(outro,"note",{"pos":"768","len":"96","key":str(LMMSutil.keys[0]),"pan":"0","vol":str(r.randint(80,100))})
+            #bassTrack2.append((deepcopy(songDic[section][0])))
+            #bassTrack2[-1].attrib["pos"]=str(position)
+            # And this harmony
+            outro=ET.SubElement(harmonyTrack2,"pattern",{"pos":str(position),"steps":"16","type":"1","muted":"0","name":"outro"})
+            ET.SubElement(outro,"note",{"pos":"48","len":"192","key":str(LMMSutil.keys[2]),"pan":"0","vol":str(r.randint(80,100))})
+            ET.SubElement(outro,"note",{"pos":"48","len":"192","key":str(LMMSutil.keys[6]),"pan":"0","vol":str(r.randint(80,100))})
+            ET.SubElement(outro,"note",{"pos":"240","len":"384","key":str(LMMSutil.keys[0]),"pan":"0","vol":str(r.randint(80,100))})
+            ET.SubElement(outro,"note",{"pos":"240","len":"384","key":str(LMMSutil.keys[4]),"pan":"0","vol":str(r.randint(80,100))})
+            #harmonyTrack2.append((deepcopy(songDic[section][1])))
+            #harmonyTrack2[-1].attrib["pos"]=str(position)
         else:
             # Whole thing is essentially two bass notes layered,starting with the one from the list.
             bassTrack2.append((deepcopy(songDic[section][0])))
             bassTrack2[-1].attrib["pos"]=str(position)
-            # And this melody
+            # And this harmony
             harmonyTrack2.append((deepcopy(songDic[section][1])))
             harmonyTrack2[-1].attrib["pos"]=str(position)
-
-            # And this flute, but only if the section calls for it.
+            # And this melody, but only if the section calls for it.
             if sectionLengths[section]>1:
                 callTrack.append((deepcopy(songDic[section][3])))
-                callTrack[-1].attrib["pos"]=str(position + 192 * (sectionLengths[section] % 2))
+                callTrack[-1].attrib["pos"]=str(position+192*(sectionLengths[section]%2))
                 # Any other section hi-jacks half the melody into the response track with its own melody track.
                 responseTrack.append((deepcopy(songDic[section][4])))
-                responseTrack[-1].attrib["pos"] = str(position+192*(sectionLengths[section]%2))
+                responseTrack[-1].attrib["pos"]=str(position+192*(sectionLengths[section]%2))
         position+=sectionLengths[section]*192
 
 #--------------------Stings-----------------------------------
@@ -390,7 +428,7 @@ ET.SubElement(dinosaurMelody,"note",{"pos":"0","vol":str(r.randint(60,100)),"key
 # A place to call home.
 dinoTrack=ET.SubElement(trackcontainer,"track",{"type":"0","muted":"0","solo":"0","name":LMMSutil.word(2)})
 # The dino sound.
-LMMSutil.makeInstrument(dinoTrack, instrumentName="monstro", basenote=str(81), vol="30", animal=3)
+LMMSutil.makeInstrument(dinoTrack, instrumentName="monstro", basenote=str(93), vol="30", animal=3)
 # Put the pattern into the track.
 dinoTrack.append(deepcopy(dinosaurMelody))
 # Put it somewhere nice.
@@ -402,23 +440,23 @@ locations.append(pos-1)
 locations.append(pos)
 locations.append(pos+1)
 
-# Someone else wanted a hyena. This is the hyena.
-hyenaMelody=ET.Element("pattern",{"pos":"0","type":"0","muted":"0","name":LMMSutil.word(2),"steps":"16"})
+# Someone else wanted a hyena. This is no longer the hyena.
+flockMelody=ET.Element("pattern", {"pos": "0", "type": "0", "muted": "0", "name":LMMSutil.word(2), "steps": "16"})
 # Just put notes randomly, so it can feel like a pack.
 for x in range(20):
     # Melodies are two bar long, notes placed should have their pos limited to 192. Since the note lengths are still a thing, it might overshoot. That's fine.
-    ET.SubElement(hyenaMelody,"note",{"pos":str(r.randint(0,192)),"vol":str(r.randint(60,100)),"key":str(LMMSutil.keys[r.choice([7,8,9,11,12])]),"len":"24","pan":"0"})
+    ET.SubElement(flockMelody, "note", {"pos":str(r.randint(0, 192)), "vol":str(r.randint(60, 100)), "key":str(LMMSutil.keys[r.choice([7, 8, 9, 11, 12])]), "len": "24", "pan": "0"})
 # A place to call home.
-hyenaTrack=ET.SubElement(trackcontainer,"track",{"type":"0","muted":"0","solo":"0","name":LMMSutil.word(2)})
+flockTrack=ET.SubElement(trackcontainer, "track", {"type": "0", "muted": "0", "solo": "0", "name":LMMSutil.word(2)})
 # The hyena sound.
-LMMSutil.makeInstrument(hyenaTrack, instrumentName="monstro", basenote=str(45), vol="30", animal=4)
+LMMSutil.makeInstrument(flockTrack, instrumentName="monstro", basenote=str(57), vol="20", animal=4)
 # Put the pattern into the track.
-hyenaTrack.append(deepcopy(hyenaMelody))
+flockTrack.append(deepcopy(flockMelody))
 # Put it somewhere nice.
 pos=r.randint(5, songbars-1)
 while locations.count(pos)>1:
-    pos=r.randint(5, songbars)
-hyenaTrack[-1].attrib["pos"]=str(pos * 192)
+    pos=r.randint(5, songbars-1)
+flockTrack[-1].attrib["pos"]=str(pos * 192)
 #--------------------Drums-----------------------------------
 # Add relaxing beats here.
 bassTrack=ET.SubElement(trackcontainer, "track", {"type": "1", "muted": "0", "solo": "0", "name":LMMSutil.word(2)})
@@ -440,7 +478,7 @@ for x in range(3):
     drumtrack=ET.SubElement(drumcontainer,"track",{"type":"0","muted":"0","solo":"0","name":LMMSutil.word(2)})
     # Add instrument.
     #instrumenttrack=LMMSutil.makeInstrument(drumtrack,fxch="2",pan=x,instrumentName=r.choice(["nes","papu","sfxr","sid"]),drum=1,type=2,basenote=r.randint(21,69))
-    instrumenttrack = LMMSutil.makeInstrument(drumtrack, fxch="2", pan=x,instrumentName="papu", drum=1,basenote=r.randint(21, 69))
+    instrumenttrack = LMMSutil.makeInstrument(drumtrack, fxch="2", pan=x,instrumentName=r.choice(["papu","nes","sfxr","sid"]), drum=1,basenote=r.randint(21, 69))
     # And the drum pattern.
     pattern=ET.SubElement(drumtrack,"pattern",{"pos":"0","type":"0","muted":"0","name":"","steps":str(32)})
     LMMSutil.drumpattern(pattern,25)
@@ -453,7 +491,7 @@ for x in range(3):
 x=0
 for section in structure:
     # Check to see if the section is the right one. No drums in intros, outros and bridges.
-    if section=="verse" or section=="intro":
+    if section=="verse":
         ET.SubElement(bassTrack, "bbtco",{"usesyle":"1","name":"",
         "len":str(sectionLengths["verse"]*192),"color":"4294901760",
         "pos":str(x),"muted":"0"})
@@ -536,7 +574,7 @@ for x in range(2):
                                                      "volume":["1","0.6"][x],
                                                      "name":str(LMMSutil.word(2))})
     # Mostly the same,effects can be applied here.
-    LMMSutil.FXChain(FXChannel)
+    LMMSutil.FXChain(FXChannel,addReverb=x)
     # The difference is these have a send tag for each channel it's sending to.
     ET.SubElement(FXChannel,"send",{"channel":"0","amount":"1"})
 # Set the loop points.
@@ -551,10 +589,10 @@ for x in range(4):
     title+=LMMSutil.word(1)
 title=title.title()+".mmp"
 print(title)
-print("structure:"+str(structure))
-print("lengths:"+str(sectionLengths))
-print("songbars "+str(songbars))
-print(locations)
+print(f"structure: {structure}")
+print(f"lengths:{sectionLengths}")
+print(f"songbars {songbars}")
+print(f"scale: {LMMSutil.scale}")
 # The opening of the file that always closes automatically with the with statement.
 with open(title,'wb') as LMMS:
     # Write the tree.

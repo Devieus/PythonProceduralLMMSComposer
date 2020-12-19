@@ -160,8 +160,8 @@ def makeTrack(parent,type):
     if type==5:
         return makeAutomation(parent)
 
-def FXChain(parent,addReverb=False,addStereo=False,addLimiter=True):
-    if not addReverb and not addStereo:return ET.SubElement(parent,"fxchain",{"numofeffects":"0","enabled":"1"})
+def FXChain(parent,addReverb=False,addStereo=False,addLimiter=False):
+    if not addReverb and not addStereo and not addLimiter:return ET.SubElement(parent,"fxchain",{"numofeffects":"0","enabled":"1"})
     #return an FX chain that contains effects.
     fxchain=ET.SubElement(parent, "fxchain", {"numofeffects":str(addReverb+addStereo+addLimiter), "enabled":"1"})
     # add the TAP reverberator to the chain.
@@ -175,7 +175,7 @@ def FXChain(parent,addReverb=False,addStereo=False,addLimiter=True):
             "autoquit_denominator":"4",
             "autoquit":"1"})
         controls=ET.SubElement(fx,"ladspacontrols",{"ports":"8"})
-        ET.SubElement(controls,"port00",{"data":"1000"}) #delay (ms)
+        ET.SubElement(controls,"port00",{"data":"1500"}) #delay (ms)
         ET.SubElement(controls,"port01",{"data":"0"}) #dry
         ET.SubElement(controls,"port02",{"data":"0"}) #wet
         ET.SubElement(controls,"port03",{"data":"1"}) #comb
@@ -427,7 +427,7 @@ def shapeSample(length,onlyPositive=False):
     elif byte==6: byte=noisewave(length,onlyPositive)
     # do a magic.
     return str(b64encode(byte))[2:-1]
-
+#-----------------------------------------------------------Scales--------------------------------------------------
 """
 A thing about scales
 The lowest note (key=0) has equivalence of C0
@@ -449,9 +449,14 @@ keys=[]
 # A key is chosen at random, C is 0, B is 11, all exists in between.
 key=r.randint(0,11)
 print(key)
-# Major scale, change for modes or esotheric scales. Add the key.
-scale=[0+key,2+key,4+key,5+key,7+key,9+key,11+key]
+# Shuffle a [2,2,2,2,2,1,1] list (or pop random indices into a new list).
+scale=[2,2,1,2,2,2,1]
+#r.shuffle(scale)
+# Now make it into a delta list and add the key to all of them.
+scale=[sum(scale[:x])+key for x in range(len(scale))]
 """
+Major scale, change for modes or esotheric scales. Add the key.
+[0+key,2+key,4+key,5+key,7+key,9+key,11+key]
 Hypothetically, this is how an esotheric scale would be constructed:
 scaleTally=[1]
 for x in range(12):
@@ -468,9 +473,8 @@ and from there on continue as per normal.
 The problem here is that it wouldn't necessarily produce heptatonic scales (if that is a problem).
 
 A way around that is to make scaleTally=[1,1,1,1,1,1,1] and then randomly add 1s in random indices.
-Another way is to shuffle a [2,2,2,2,2,2,3,3] list (or pop random indices into a new list).
 """
-# Add the scale two times times to make the keys list, this is the domain the melody will play in (but the octave depends on the individual track).
+# Add the scale two times times to make the keys list, this is the domain the everything will play in (but the octave depends on the individual track).
 for x in range(3):
     # But do it in a way that adds it in different octaves.
     for y in scale:
@@ -511,7 +515,7 @@ def generateProgression():
     return progression
 
 
-def makeMelody(flutePattern,progression,sectionLength,humanize=False):
+def makeMelody(pattern, progression, sectionLength, humanize=True):
     # The melody should be multiples of two bars long.
     # This could mean it sometimes won't show up in a non-0 length section,
     # but those are parts where it would thematically make sense, like the intro.
@@ -545,9 +549,9 @@ def makeMelody(flutePattern,progression,sectionLength,humanize=False):
         # Very, very crude rest implementation/adding of notes.
         if not r.choice(range(10)) == 0:
             # Add the note. Humanization makes the note slightly misaligned, by position and length.
-            ET.SubElement(flutePattern, "note",
-                          {"pos":str(length+(r.randint(-10,10)*humanize)),"vol":str(r.randint(60,100)),"key":str(note),"len":str(noteLength+(r.randint(-10,10)*humanize)),
-                           "pan": "0"})
+            ET.SubElement(pattern, "note",
+                          {"pos":str(length+(r.randint(-2,2)*humanize)),"vol":str(r.randint(60,100)),"key":str(note),
+                           "len":str(noteLength+(r.randint(-2,2)*humanize)),"pan": "0"})
             # Choose a note and remember it.
             """A note about the melody:
             The next note should be one higher 30%, one lower 30%, two higher 10%, two lower 10%, the same 10%
@@ -594,7 +598,7 @@ def makeMelody(flutePattern,progression,sectionLength,humanize=False):
         # Fun fact, a bar is exactly 192 ticks long.
         length+=noteLength
 
-def makeMelody2(flutePattern,progression,sectionLength,half):
+def makeMelody2(pattern, progression, sectionLength, half,humanize=True):
     # This definition is the same as the other, except [odd,even] bars are silent when half is [true,false].
     sectionLength=sectionLength-(sectionLength%2)
     # Keep track of stuff.
@@ -637,9 +641,9 @@ def makeMelody2(flutePattern,progression,sectionLength,half):
             # Very, very crude rest implementation/adding of notes.
             if not r.choice(range(10)) == 0:
                 # Add the note.
-                ET.SubElement(flutePattern, "note",
-                              {"pos": str(length), "vol": str(r.randint(60, 100)), "key": str(note), "len": str(noteLength),
-                               "pan": "0"})
+                ET.SubElement(pattern, "note",
+                              {"pos":str(length+(r.randint(-2,2)*humanize)),"vol": str(r.randint(60,100)),"key":str(note),
+                               "len":str(noteLength+(r.randint(-2,2)*humanize)),"pan": "0"})
                 # Choose a note and remember it.
                 """A note about the melody:
                 The next note should be one higher 30%, one lower 30%, two higher 10%, two lower 10%, the same 10%
