@@ -3,12 +3,14 @@ from copy import deepcopy
 
 import LMMSutil
 import random as r
-songType=2#r.choice([0,2])
+songType=0#r.choice([0,2])
 # Variables
 outroPosition=0
 # This may be interesting later on.
 numerator=4
-"""reverb drums"""
+"""Vocals?
+More/different animals
+Genres: calypso, freejazz"""
 #-------------------------Sections------------------------------
 """
 0-4 bars intro,4 or 8 bars for a section,4 or 8 bars for a chorus,0-4 bars bridge and 0-4 bars outro.
