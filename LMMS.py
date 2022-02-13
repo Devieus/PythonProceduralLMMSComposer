@@ -9,7 +9,7 @@ import random as r
 2: Ska-ish
 3: Calypso
 4: Free jazz"""
-songType=3#r.choice(range(5))
+songType=r.choice(range(5))
 print(f"songtype: {songType}")
 # Variables
 outroPosition=0
