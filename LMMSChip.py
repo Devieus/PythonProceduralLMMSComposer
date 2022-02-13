@@ -288,3 +288,4 @@ def createInstrument(instrumentName,shapeSample):
             "ch4ssl":"2", # Volume sweep duration.
             "srw":"0", # Shift register width. 0=15 (better for higher pitches), 1=7 (better for lower).
             "ch4vsd":"0",} # Volume sweep direction
+    else: pass

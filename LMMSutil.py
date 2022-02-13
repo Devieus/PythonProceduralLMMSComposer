@@ -14,26 +14,26 @@ Other utils used in this file
 def randbool(odds,min=0,max=100):
     return True if r.randrange(min,max)<odds else False
 
-# Make the bass template by adding 16th notes to the four spots until a whole bar is filled.
-def bassTemplate():
-    result=[12, 12, 12, 12]
-    # It starts with a 16th note on each of the four hits, so naturally 12 more 16ths need to be added.
-    for x in range(12):
+# Make the bass template by adding 16th notes to the numerator spots until a whole bar is filled.
+def bassTemplate(numerator):
+    result=[12 for _ in range(numerator)]
+    # It starts with a number of 16th notes, so naturally n fewer 16ths need to be added.
+    for _ in range(12):
         # Increase a random index by 12
-        result[r.choice(range(4))] += 12
+        result[r.choice(range(numerator))] += 12
     return result
 """
 Instruments
 """
 # Make an instrument and attach it to the parent parameter.
 def makeInstrument(parent, pan=2, fxch="1", pitchrange="1", pitch="0",
-                   basenote="57", vol="60", instrumentName="nes", type=0, env=0, animal=0, drum=0):
+                   basenote=57, vol="60", instrumentName="nes", type=0, env=0, animal=0, drum=0):
     # Set the basic variables every track has, pan, volume, that sort of stuff.
     instrumentTrack=ET.SubElement(parent,"instrumenttrack",{"pan":["-60","60","0"][pan],
                                                            "fxch":fxch,
                                                            "pitchrange":pitchrange,
                                                            "pitch":pitch,
-                                                           "basenote":basenote,
+                                                           "basenote":f"{basenote}",
                                                            "vol":[[vol,"20"][instrumentName=="bitinvader"],"100"][drum]})
     # A branching path emerges, depending on the instrument of choice.
     # Every instrument has a specific name, "nes" is for nescaline.
@@ -448,9 +448,9 @@ keys=[]
 # For now, a fixed major scale
 # A key is chosen at random, C is 0, B is 11, all exists in between.
 key=r.randint(0,11)
-print(key)
+print(f"key: {key}")
 # Shuffle a [2,2,2,2,2,1,1] list (or pop random indices into a new list).
-scale=[2,2,1,2,2,2,1]
+scale=[2,2,2,1,2,2,1]
 #r.shuffle(scale)
 # Now make it into a delta list and add the key to all of them.
 scale=[sum(scale[:x])+key for x in range(len(scale))]
@@ -515,7 +515,7 @@ def generateProgression():
     return progression
 
 
-def makeMelody(pattern, progression, sectionLength, humanize=True):
+def makeMelody(pattern, progression, sectionLength, humanize=False):
     # The melody should be multiples of two bars long.
     # This could mean it sometimes won't show up in a non-0 length section,
     # but those are parts where it would thematically make sense, like the intro.
@@ -598,7 +598,7 @@ def makeMelody(pattern, progression, sectionLength, humanize=True):
         # Fun fact, a bar is exactly 192 ticks long.
         length+=noteLength
 
-def makeMelody2(pattern, progression, sectionLength, half,humanize=True):
+def makeMelody2(pattern, progression, sectionLength, half,humanize=False):
     # This definition is the same as the other, except [odd,even] bars are silent when half is [true,false].
     sectionLength=sectionLength-(sectionLength%2)
     # Keep track of stuff.
@@ -694,12 +694,28 @@ def makeMelody2(pattern, progression, sectionLength, half,humanize=True):
 """
 Drums
 """
-def drumpattern(pattern,odds):
+def drumpattern(pattern,odds,songType):
     # Drums have slightly different ways of doing things. Their len is -192 and their key is 57.
     # While that can be changed, that's how drum tracks are written in the file.
     # The position still works the same however, except it should be placed in spaces in multiples of, depending, 16.
     # That doesn't mean the second hit is on 16, but on 192/16=12.
     # Not going off-beat just yet, hits are on every half note instead.
-    for y in range(16):
-        ET.SubElement(pattern,"note",
-                      {"pos":str(24*y),"vol":"100","key":"57","len":"-192","pan":"0"})if randbool(odds) else 1
+    if songType!=3:
+        for y in range(16):
+            ET.SubElement(pattern,"note",
+                          {"pos":str(24*y),"vol":"100","key":"57","len":"-192","pan":"0"})if randbool(odds) else 1
+    # Calypso has a fixed drum pattern, it's 4 bars long.
+    else:
+        ET.SubElement(pattern, "note",{"pos":"72", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
+        ET.SubElement(pattern, "note", {"pos": "72", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
+        ET.SubElement(pattern, "note", {"pos": "96", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
+        ET.SubElement(pattern, "note", {"pos": "120", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
+        ET.SubElement(pattern, "note", {"pos": "168", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
+        ET.SubElement(pattern, "note", {"pos": "192", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
+        ET.SubElement(pattern, "note", {"pos": "216", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
+        ET.SubElement(pattern, "note", {"pos": "264", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
+        ET.SubElement(pattern, "note", {"pos": "288", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
+        ET.SubElement(pattern, "note", {"pos": "312", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
+        ET.SubElement(pattern, "note", {"pos": "360", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
+        ET.SubElement(pattern, "note", {"pos": "384", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
+        ET.SubElement(pattern, "note", {"pos": "432", "vol": "100", "key": "57", "len": "-192", "pan": "0"})

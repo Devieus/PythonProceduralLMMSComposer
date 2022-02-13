@@ -328,7 +328,7 @@ def createInstrument(instrumentName,shapeSample,basenote):
             "Treble":"100", # Crude filters. They sort of do something, but 100/-1 is decent enough.
             "Bass":"1",
             "ch4vol":"15", # Channel 4 volume.
-            "ch4ssl":r.randint(1,2), # Volume sweep duration. This makes the drums more drummy.
+            "ch4ssl":f"{r.randint(1,2)}", # Volume sweep duration. This makes the drums more drummy.
             "srw":["0","1"][basenote>45], # Shift register width. 0=15 (better for higher pitches), 1=7 (better for lower).
             "ch4vsd":"0", # Volume sweep direction.
             "ch1vol":"0", # Don't worry about any of these.
