@@ -11,23 +11,24 @@ import LMMSMeditative
 """
 Other utils used in this file
 """
-def randbool(odds,min=0,max=100):
-    return True if r.randrange(min,max)<odds else False
-
+def randbool(odds,mininum=0,maximum=100):
+    return True if r.randrange(mininum,maximum)<odds else False
 # Make the bass template by adding 16th notes to the numerator spots until a whole bar is filled.
-def bassTemplate(numerator):
+
+def makeBassTemplate(numerator):
     result=[12 for _ in range(numerator)]
-    # It starts with a number of 16th notes, so naturally n fewer 16ths need to be added.
-    for _ in range(12):
+    # It starts with the numerator number of 16th notes, so only 3 16ths per beat need to be added.
+    for _ in range(3*numerator):
         # Increase a random index by 12
         result[r.choice(range(numerator))] += 12
     return result
+
 """
 Instruments
 """
 # Make an instrument and attach it to the parent parameter.
 def makeInstrument(parent, pan=2, fxch="1", pitchrange="1", pitch="0",
-                   basenote=57, vol="60", instrumentName="nes", type=0, env=0, animal=0, drum=0):
+                   basenote=57, vol="60", instrumentName="nes", instrumentType=0, env=0, animal=0, drum=0):
     # Set the basic variables every track has, pan, volume, that sort of stuff.
     instrumentTrack=ET.SubElement(parent,"instrumenttrack",{"pan":["-60","60","0"][pan],
                                                            "fxch":fxch,
@@ -41,7 +42,7 @@ def makeInstrument(parent, pan=2, fxch="1", pitchrange="1", pitch="0",
     # Only the first tab is depending on the actual instrument name, the others are the same regardless.
     if drum>0:ET.SubElement(instrument,instrumentName,LMMSDrums.createInstrument(instrumentName,shapeSample,basenote))
     elif animal>0: ET.SubElement(instrument, instrumentName, LMMSMeditative.makeBird(instrumentName, animal))
-    elif type==1:ET.SubElement(instrument,instrumentName,LMMSMeditative.createInstrument(instrumentName,shapeSample))
+    elif instrumentType==1:ET.SubElement(instrument,instrumentName,LMMSMeditative.createInstrument(instrumentName,shapeSample))
     else:ET.SubElement(instrument, instrumentName, LMMSChip.createInstrument(instrumentName, shapeSample))
         # This is where the branching path ends.
     # eldata is for the envelope tab.
@@ -91,7 +92,7 @@ def makeInstrument(parent, pan=2, fxch="1", pitchrange="1", pitch="0",
                                     "lspd":"0.1",
                                     "ctlenvamt":"0",
                                     "lspd_numerator":"4"})
-    # Envelope tab part 3, resonance envelope. These are all empty tags. With a shitton of attributes.
+    # Envelope tab part 3, resonance envelope. These are all empty tags. With a shit-ton of attributes.
     ET.SubElement(eldata, "elres",{"lspd_denominator":"4",
                                    "sustain":"0.5",
                                    "pdel":"0",
@@ -146,18 +147,18 @@ def makeInstrument(parent, pan=2, fxch="1", pitchrange="1", pitch="0",
 """
 Other track types
 """
-def makeSample(parent):
+def makeSample():
     pass
 
 def makeAutomation(parent):
     ET.SubElement(parent,"track",{"muted":"0","type":"5","name":"Automation track","solo":"0"})
 
-def makeTrack(parent,type):
-    if type==0:
+def makeTrack(parent,trackType):
+    if trackType==0:
         return makeInstrument(parent)
-    if type==2:
-        return makeSample(parent)
-    if type==5:
+    if trackType==2:
+        return makeSample()
+    if trackType==5:
         return makeAutomation(parent)
 
 def FXChain(parent,addReverb=False,addStereo=False,addLimiter=False):
@@ -169,7 +170,7 @@ def FXChain(parent,addReverb=False,addStereo=False,addLimiter=False):
         fx=ET.SubElement(fxchain,"effect",{"name":"ladspaeffect",
             "autoquit_numerator":"4",
             "on":"1",
-            "wet":"1",
+            "wet":"0.25",
             "gate":"0",
             "autoquit_syncmode":"0",
             "autoquit_denominator":"4",
@@ -183,9 +184,9 @@ def FXChain(parent,addReverb=False,addStereo=False,addLimiter=False):
         ET.SubElement(controls,"port05",{"data":"1"}) #bandpass
         ET.SubElement(controls,"port06",{"data":"1"}) #enhanced stereo
         ET.SubElement(controls,"port07",{"data":str(r.choice([2,5,6,10,11,13,14,22,24,25,29,40,41]))}) #type
-        key=ET.SubElement(fx,"key")
-        ET.SubElement(key,"attribute",{"name":"file","value":"tap_reverb"})
-        ET.SubElement(key,"attribute",{"name":"plugin","value":"tap_reverb"})
+        key1=ET.SubElement(fx,"key")
+        ET.SubElement(key1,"attribute",{"name":"file","value":"tap_reverb"})
+        ET.SubElement(key1,"attribute",{"name":"plugin","value":"tap_reverb"})
     # add the stereo enhancer to the chain.
     if addStereo:
         ET.SubElement(fxchain,"effect",{"name":"stereoenhancer",
@@ -216,15 +217,15 @@ def FXChain(parent,addReverb=False,addStereo=False,addLimiter=False):
         ET.SubElement(port,"data",{"value":"31.6228","id":"2074","scale_type":"log"})
         ET.SubElement(controls,"port019",{"data": "1"})  # ASC
         ET.SubElement(controls,"port021",{"data": "0.5"})  # ASC level
-        key=ET.SubElement(fx,"key")
-        ET.SubElement(key,"attribute",{"name": "file","value": "calf"})
-        ET.SubElement(key,"attribute",{"name": "plugin","value": "Limiter"})
+        key1=ET.SubElement(fx,"key")
+        ET.SubElement(key1,"attribute",{"name": "file","value": "calf"})
+        ET.SubElement(key1,"attribute",{"name": "plugin","value": "Limiter"})
     return fxchain
 """
 A thing about types.
 Instrument tracks of any kind are type 0, this includes the audio file processor.
 B+B tracks are type 1, they have their own containers
-Sample tracks are type 2. Like instrument tracks, they have their own FX chain. Unlike instruments that's all they have for properties.
+Sample tracks are type 2. Like instrument tracks, they have their own FX chain. UnbassTemplatelike instruments that's all they have for properties.
 Automation tracks are type 5, there is no 3 or 4.
 Type 6 is reserved for the global automation tracks.
 """
@@ -242,7 +243,7 @@ cons2=['b','c','d','f','g','h','k','l','m','n','p','r','s','t','w','y','z','ch',
 vow=['a','e','i','o','u']
 # Make a syllable.
 def syl():
-    # The result string.
+    # The resulting string.
     result=''
     req=True
     #Does it start with a consonant?
@@ -258,12 +259,12 @@ def syl():
 
 # Make a word with x syllables.
 def word(x):
-    # The result string.
+    # The resulting string.
     result=''
     if x<=0:
         return result
     # Run syl() as many times as it's been given.
-    for y in range(x):
+    for y1 in range(x):
         result+=syl()
     return result
 """
@@ -326,7 +327,7 @@ def sawwave(length, onlyPositive):
     result=b''
     # This is literally just a line.
     for x in range(length):
-        # y=x, but it needs to slope depending on the length so it maxes out at 1.
+        # y=x, but it needs to slope depending on the length, so it maxes out at 1.
         result+=pack('f',(x/length)*15) if onlyPositive else pack('f',((x/length)*2)-1)
     return result
 
@@ -381,6 +382,7 @@ def smoothwave(length, onlyPositive):
             point1[0]=length
         step=(point1[1]-point0[1])/(point1[0]-point0[0])
         for x in range(point1[0]-point0[0]):
+            # bassTemplate
             sample+=step
             result+=pack('f',sample*15) if onlyPositive else pack('f',sample)
         # Move the marker.
@@ -443,7 +445,7 @@ Add 12x4 to the second scale,
 Add 12x5 to the last scale
 Cap it off by adding C6 (12x6=72)
 """
-# the recepticle.
+# the receptacle.
 keys=[]
 # For now, a fixed major scale
 # A key is chosen at random, C is 0, B is 11, all exists in between.
@@ -451,7 +453,29 @@ key=r.randint(0,11)
 print(f"key: {key}")
 # Shuffle a [2,2,2,2,2,1,1] list (or pop random indices into a new list).
 scale=[2,2,2,1,2,2,1]
+# Shift/rotate the scale.
+rot=r.randint(0,7)
+scale=scale[-rot:]+scale[:-rot]
 #r.shuffle(scale)
+'''
+†
+Something was fishy. It's not bad, but it's not in the spirit of things. I enabled the shuffle again, but a new method would be kinda neat.
+We have two methods, after all.
+- Stuffing
+- Fixed length
+
+There might be issues at a later point, good luck.
+- Spider
+
+I guess the shuffle is Ebrit's then. I like the fixed length more tbh.
+- Devieus
+
+fuck yis
+- Ebrit
+scale=[1,1,1,1,1,1,1]
+for _ in range(5):
+    scale[r.randint(0,len(scale)-1)]+=1
+'''
 # Now make it into a delta list and add the key to all of them.
 scale=[sum(scale[:x])+key for x in range(len(scale))]
 """
@@ -474,7 +498,7 @@ The problem here is that it wouldn't necessarily produce heptatonic scales (if t
 
 A way around that is to make scaleTally=[1,1,1,1,1,1,1] and then randomly add 1s in random indices.
 """
-# Add the scale two times times to make the keys list, this is the domain the everything will play in (but the octave depends on the individual track).
+# Add the scale two times to make the keys list, this is the domain the everything will play in (but the octave depends on the individual track).
 for x in range(3):
     # But do it in a way that adds it in different octaves.
     for y in scale:
@@ -513,9 +537,70 @@ def generateProgression():
         # and finally one that's lower than the third.
         progression.append(r.choice(range(0, progression[-1]-1)))
     return progression
+"""Bass"""
+def makeBass(pattern,progression,sectionLength,harmDic,songType,ticks=192):
+    for length in range(sectionLength):
+        if songType==2:
+            # In ska, the bass and rhythm plays only on the off-beats. That means they play at positions 24, 24+(24*2), 24+(24*4), etc
+            # † Except in different numerators.
+            for x in range(4):
+                # Whole thing is essentially two bass notes layered, starting with the one from the list.
+                ET.SubElement(progression, "note", {"pos": str(length*ticks+24+48*x), "vol": str(r.randint(60, 100)),
+                                                    "key": str(keys[progression[length]]),
+                                                    "len": "24", "pan":"0"})
+                # Also add this note as well.
+                ET.SubElement(progression, "note", {"pos": str(length*ticks+24+48*x), "vol": str(r.randint(60, 100)),
+                                        "key": str(keys[progression[length]]),
+                                        "len": "24", "pan":"0"})
+        else:
+            # Whole thing is essentially two bass notes layered, starting with the one from the list.
+            ET.SubElement(pattern,"note",{"pos":str(length*ticks),"vol":str(r.randint(60,100)),
+                           "key":str(keys[progression[length]]),"len":f"{ticks}","pan":"0"})
+            # Also add this note as well.
+            ET.SubElement(pattern,"note",{"pos":str(length*ticks),"vol":str(r.randint(60,100)),
+                              "key":str(keys[harmDic[length]]),"len":f"{ticks}","pan":"0"})
+"""Harmonies"""
+def makeHarmonies(pattern,section,progression,numerator,sectionLength,songType,ticks=192):
+    bassTemplate=makeBassTemplate(numerator)
+    chorusBassTemplate=makeBassTemplate(numerator)
+    for length in range(sectionLength):
+        if songType==2:
+            for x in range(4):
+                ET.SubElement(pattern,"note",{"pos":str(length*ticks+24+48*x),"vol":str(r.randint(60,100)),"key":str(keys[progression[length]]),
+                "len":"24","pan":"0"})
+        else:
+            if section=="chorus":
+                # Place the right notes in the right place.
+                for x in range(numerator):
+                    ET.SubElement(pattern,"note",{"pos":str(length*ticks+sum(chorusBassTemplate[:x])),
+                    "vol":str(r.randint(60,100)),"key":str(keys[progression[length]]),"len":str(chorusBassTemplate[0]),"pan":"0"})
+            else:
+                # Trust me, this should work.
+                for x in range(numerator):
+                    ET.SubElement(pattern,"note",{"pos":str(length*ticks+sum(bassTemplate[:x])),
+                    "vol":str(r.randint(60,100)),
+                                                  "key":str(keys[progression[length]]),
+                                                  "len":str(bassTemplate[x]),
+                                                  "pan":"0"})
+                    """
+                    ET.SubElement(rhythmPattern,"note",{"pos":str(length*ticks),"vol":str(r.randint(60,100)),"key":str(LMMSutil.keys[progDic[section][length]]),
+                    "len":str(bassTemplate[0]),"pan":"0"})
+                    ET.SubElement(rhythmPattern,"note",{"pos":str(length*ticks+bassTemplate[0]),
+                    "vol":str(r.randint(60,100)),
+                    "key":str(LMMSutil.keys[progDic[section][length]]-12),
+                    "len":str(bassTemplate[1]),"pan":"0"})
+                    ET.SubElement(pattern,"note",{"pos":str(length*ticks+bassTemplate[0]+bassTemplate[1]),
+                    "vol":str(r.randint(60,100)),
+                    "key":str(LMMSutil.keys[harmDic[section][length]]),
+                    "len":str(bassTemplate[2]),"pan":"0"})
+                    ET.SubElement(pattern,"note",{"pos":str(length*ticks+bassTemplate[0]+bassTemplate[1]+bassTemplate[2]),
+                    "vol":str(r.randint(60,100)),
+                    "key":str(LMMSutil.keys[progDic[section][length]]),
+                    "len":str(bassTemplate[3]),"pan":"0"})
+                    """
 
-
-def makeMelody(pattern, progression, sectionLength, humanize=False):
+"""Melodies"""
+def makeMelody(pattern, progression, sectionLength,ticks=192, humanize=False):
     # The melody should be multiples of two bars long.
     # This could mean it sometimes won't show up in a non-0 length section,
     # but those are parts where it would thematically make sense, like the intro.
@@ -529,21 +614,21 @@ def makeMelody(pattern, progression, sectionLength, humanize=False):
     # The first note of a bar is going to be the note middle tonic (second octave).
     note=keys[progression[barNumber-1]] #same as keys[7]
     # Every section has its own length. If a section is length less than 2 bars long it gets skipped.
-    while length<sectionLength*192 and not breaker:
+    while length<sectionLength*ticks and not breaker:
         # pos=starting position, vol=velocity, key=pitch (60=C5), len=duration (48=quarter), pan=pan.
         # Generate a random note length.
         noteLength=r.choice([24,48])
         # Fill the gap if it's too long to prevent overlap.
         # †# remove this once multiple tracks are implemented for J-cuts/negative transition lengths.
-        if noteLength+length>sectionLength*192:
-            noteLength=sectionLength*192-length
+        if noteLength+length>sectionLength*ticks:
+            noteLength=sectionLength*ticks-length
             # Flip the breaker, but still add the current note (or rest; see next if statement) to round it off.
             breaker=True
             # The while statement will end now.
         # Bar check. Can be merged with the previous block.
-        if noteLength+length>192*barNumber:
+        if noteLength+length>ticks*barNumber:
             # The added note exceeds the current bar. Truncate the note length.
-            # noteLength=(192*barNumber)-length
+            # noteLength=(ticks*barNumber)-length
             # Go to the next bar
             newBar=barNumber+1
         # Very, very crude rest implementation/adding of notes.
@@ -595,10 +680,10 @@ def makeMelody(pattern, progression, sectionLength, humanize=False):
                 note=keys[progression[barNumber-1]]
                 # Move the barNumber tracker up.
                 barNumber=newBar
-        # Fun fact, a bar is exactly 192 ticks long.
+        # Fun fact, a bar is exactly "ticks" ticks long.
         length+=noteLength
 
-def makeMelody2(pattern, progression, sectionLength, half,humanize=False):
+def makeMelody2(pattern, progression, sectionLength, half,ticks,humanize=False):
     # This definition is the same as the other, except [odd,even] bars are silent when half is [true,false].
     sectionLength=sectionLength-(sectionLength%2)
     # Keep track of stuff.
@@ -610,16 +695,16 @@ def makeMelody2(pattern, progression, sectionLength, half,humanize=False):
     # The first note of a bar is going to be the note middle tonic (second octave).
     note=keys[progression[barNumber-1]] #same as keys[7]
     # Every section has its own length. If a section is length less than 2 bars long it gets skipped.
-    while length<sectionLength*192 and not breaker:
+    while length<sectionLength*ticks and not breaker:
         # pos=starting position, vol=velocity, key=pitch (60=C5), len=duration (48=quarter), pan=pan.
         # Generate a random note length.
-        noteLength=r.choice([12,24,48,60,72])
+        noteLength=r.choice([24,48,60,72])
         # odd are silent when half is true.
         if (half and barNumber%2==0) or (not half and barNumber%2==1):
             # Don't keep track of the note length as there is none.
             noteLength=0
             # The length marker needs to move up one bar.
-            length+=192
+            length+=ticks
             # The current bar needs to move up one bar.
             barNumber+=1
             # The next bar needs to move up one bar.
@@ -627,15 +712,15 @@ def makeMelody2(pattern, progression, sectionLength, half,humanize=False):
         else:
             # Fill the gap if it's too long to prevent overlap.
             # †# remove this once multiple tracks are implemented for J-cuts/negative transition lengths.
-            if noteLength+length>sectionLength*192:
-                noteLength=sectionLength*192-length
+            if noteLength+length>sectionLength*ticks:
+                noteLength=sectionLength*ticks-length
                 # Flip the breaker, but still add the current note (or rest; see next if statement) to round it off.
                 breaker=True
                 # The while statement will end now.
             # Bar check. Can be merged with the previous block.
-            if noteLength+length>192*barNumber:
+            if noteLength+length>ticks*barNumber:
                 # The added note exceeds the current bar. Truncate the note length.
-                # noteLength=(192*barNumber)-length
+                # noteLength=(ticks*barNumber)-length
                 # Go to the next bar
                 newBar=barNumber+1
             # Very, very crude rest implementation/adding of notes.
@@ -689,24 +774,22 @@ def makeMelody2(pattern, progression, sectionLength, half,humanize=False):
                     note=keys[progression[barNumber-1]]
                     # Move the barNumber tracker up.
                     barNumber=newBar
-        # Fun fact, a bar is exactly 192 ticks long.
+        # Fun fact, a bar is exactly "ticks" ticks long.
         length+=noteLength
 """
 Drums
 """
-def drumpattern(pattern,odds,songType):
+def makeDrumpattern(pattern, odds, songType, steps):
     # Drums have slightly different ways of doing things. Their len is -192 and their key is 57.
     # While that can be changed, that's how drum tracks are written in the file.
-    # The position still works the same however, except it should be placed in spaces in multiples of, depending, 16.
-    # That doesn't mean the second hit is on 16, but on 192/16=12.
-    # Not going off-beat just yet, hits are on every half note instead.
+    # Not going off-beat just yet, hits are on every eighth note instead, meaning the position is increased by 24.
     if songType!=3:
-        for y in range(16):
+        for y1 in range(steps):
             ET.SubElement(pattern,"note",
-                          {"pos":str(24*y),"vol":"100","key":"57","len":"-192","pan":"0"})if randbool(odds) else 1
+                          {"pos":str(24*y1),"vol":"100","key":"57","len":"-192","pan":"0"})if randbool(odds) else 1
     # Calypso has a fixed drum pattern, it's 4 bars long.
     else:
-        ET.SubElement(pattern, "note",{"pos":"72", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
+        ET.SubElement(pattern, "note",{"pos":"0", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
         ET.SubElement(pattern, "note", {"pos": "72", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
         ET.SubElement(pattern, "note", {"pos": "96", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
         ET.SubElement(pattern, "note", {"pos": "120", "vol": "100", "key": "57", "len": "-192", "pan": "0"})
